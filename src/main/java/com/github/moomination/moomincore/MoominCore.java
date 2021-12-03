@@ -1,9 +1,6 @@
 package com.github.moomination.moomincore;
 
-import com.github.moomination.moomincore.commands.MemoryCommand;
-import com.github.moomination.moomincore.commands.PingCommand;
-import com.github.moomination.moomincore.commands.SpawnCommand;
-import com.github.moomination.moomincore.commands.WaypointCommand;
+import com.github.moomination.moomincore.commands.*;
 import com.github.moomination.moomincore.config.Configs;
 import com.github.moomination.moomincore.listeners.BossDamageListener;
 import com.github.moomination.moomincore.listeners.ChatListener;
@@ -21,6 +18,11 @@ import java.time.Instant;
 public final class MoominCore extends JavaPlugin {
 
   private static MoominCore instance;
+  private static Commodore commodore;
+
+  public static Commodore commodore() {
+    return commodore;
+  }
 
   @Override
   public void onEnable() {
@@ -37,11 +39,12 @@ public final class MoominCore extends JavaPlugin {
     }
 
     getLogger().info("Initializing commands...");
-    Commodore commodore = CommodoreProvider.getCommodore(this);
+    commodore = CommodoreProvider.getCommodore(this);
     MemoryCommand.register(commodore, this);
     PingCommand.register(commodore, this);
     SpawnCommand.register(commodore, this);
     WaypointCommand.register(commodore, this);
+    MoominCommand.register(commodore, this);
 
     getLogger().info("Initializing events...");
     PluginManager pluginManager = getServer().getPluginManager();

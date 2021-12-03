@@ -1,6 +1,9 @@
 package com.github.moomination.moomincore.commands;
 
-import com.github.moomination.moomincore.command.*;
+import com.github.moomination.moomincore.command.Commands;
+import com.github.moomination.moomincore.command.NamedArgumentType;
+import com.github.moomination.moomincore.command.PermissionTest;
+import com.github.moomination.moomincore.command.PluginCommands;
 import me.lucko.commodore.Commodore;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -21,17 +24,16 @@ public class PingCommand {
         .permission("moomination.command.ping")
         .build("", plugin),
       Commands.literal("ping")
-        .requires(PermissionTest.test("moomination.command.ping"))
-        .executes(ctx -> ping(ctx.getSource(), Commands.playerOrException(ctx.getSource().sender())))
+        .requires(PermissionTest.test(commodore, "moomination.command.ping"))
+        .executes(ctx -> ping(commodore.getBukkitSender(ctx), Commands.playerOrException(commodore.getBukkitSender(ctx))))
         .then(Commands.argument("player", NamedArgumentType.player())
-          .requires(PermissionTest.test("moomination.command.ping.other"))
-          .executes(ctx -> ping(ctx.getSource(), ctx.getArgument("player", Player.class)))
+          .requires(PermissionTest.test(commodore, "moomination.command.ping.other"))
+          .executes(ctx -> ping(commodore.getBukkitSender(ctx), ctx.getArgument("player", Player.class)))
         )
     );
   }
 
-  private static int ping(CommandSource source, Player player) {
-    CommandSender sender = source.sender();
+  private static int ping(CommandSender sender, Player player) {
     int ping = player.getPing();
     sender.sendMessage(ChatColor.YELLOW + player.getName() + "'s ping: " + colorize(ping) + ping);
     return ping;

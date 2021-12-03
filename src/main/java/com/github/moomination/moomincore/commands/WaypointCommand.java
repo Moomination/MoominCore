@@ -4,7 +4,6 @@ import com.github.moomination.moomincore.Waypoint;
 import com.github.moomination.moomincore.command.*;
 import com.github.moomination.moomincore.config.Configs;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import me.lucko.commodore.Commodore;
@@ -32,40 +31,40 @@ public class WaypointCommand {
         .permission("moomination.command.waypoint")
         .build("", plugin),
       Commands.literal("waypoint")
-        .requires(PermissionTest.test("moomination.command.waypoint"))
+        .requires(PermissionTest.test(commodore, "moomination.command.waypoint"))
         .then(Commands.literal("list")
-          .requires(PermissionTest.test("moomination.command.waypoint.list"))
-          .executes(ctx -> list(ctx, false))
+          .requires(PermissionTest.test(commodore, "moomination.command.waypoint.list"))
+          .executes(ctx -> list(commodore.getBukkitSender(ctx), false))
         )
         .then(Commands.literal("add")
-          .requires(PermissionTest.test("moomination.command.waypoint.add"))
+          .requires(PermissionTest.test(commodore, "moomination.command.waypoint.add"))
           .then(Commands.argument("name", StringArgumentType.string())
-            .executes(ctx -> add(ctx, ctx.getArgument("name", String.class)))
+            .executes(ctx -> add(commodore.getBukkitSender(ctx), ctx.getArgument("name", String.class)))
             .then(Commands.argument("position", CoordinateArgumentType.coordinate())
-              .requires(PermissionTest.test("moomination.command.waypoint.add.positioned"))
-              .executes(ctx -> add(ctx, ctx.getArgument("name", String.class), ctx.getArgument("position", Vec3I.class)))
+              .requires(PermissionTest.test(commodore, "moomination.command.waypoint.add.positioned"))
+              .executes(ctx -> add(commodore.getBukkitSender(ctx), ctx.getArgument("name", String.class), ctx.getArgument("position", Vec3I.class)))
               .then(Commands.argument("world", NamedArgumentType.world())
-                .executes(ctx -> addPositioned(ctx, ctx.getArgument("name", String.class), ctx.getArgument("position", Vec3I.class), ctx.getArgument("world", World.class)))
+                .executes(ctx -> addPositioned(commodore.getBukkitSender(ctx), ctx.getArgument("name", String.class), ctx.getArgument("position", Vec3I.class), ctx.getArgument("world", World.class)))
               )
             )
           )
         )
         .then(Commands.literal("edit") // Waypoint Composer v2.0
-          .requires(PermissionTest.test("moomination.command.waypoint.edit"))
+          .requires(PermissionTest.test(commodore, "moomination.command.waypoint.edit"))
           .then(Commands.argument("name", StringArgumentType.string())
-            .executes(ctx -> add(ctx, ctx.getArgument("name", String.class)))
+            .executes(ctx -> add(commodore.getBukkitSender(ctx), ctx.getArgument("name", String.class)))
             .then(Commands.argument("position", CoordinateArgumentType.coordinate())
-              .executes(ctx -> add(ctx, ctx.getArgument("name", String.class), ctx.getArgument("position", Vec3I.class)))
+              .executes(ctx -> add(commodore.getBukkitSender(ctx), ctx.getArgument("name", String.class), ctx.getArgument("position", Vec3I.class)))
               .then(Commands.argument("world", NamedArgumentType.world())
-                .executes(ctx -> addPositioned(ctx, ctx.getArgument("name", String.class), ctx.getArgument("position", Vec3I.class), ctx.getArgument("world", World.class)))
+                .executes(ctx -> addPositioned(commodore.getBukkitSender(ctx), ctx.getArgument("name", String.class), ctx.getArgument("position", Vec3I.class), ctx.getArgument("world", World.class)))
               )
             )
           )
         )
         .then(Commands.literal("remove")
-          .requires(PermissionTest.test("moomination.command.waypoint.remove"))
+          .requires(PermissionTest.test(commodore, "moomination.command.waypoint.remove"))
           .then(Commands.argument("name", StringArgumentType.string())
-            .executes(ctx -> remove(ctx, ctx.getArgument("name", String.class)))
+            .executes(ctx -> remove(commodore.getBukkitSender(ctx), ctx.getArgument("name", String.class)))
           )
         )
       //        .then(Commands.literal("dump")
@@ -104,13 +103,11 @@ public class WaypointCommand {
     );
   }
 
-  private static int setDisplay(CommandContext<CommandSource> ctx, String name, boolean display) {
+  private static int setDisplay(CommandSender sender, String name, boolean display) {
     return 1;
   }
 
-  private static int list(CommandContext<CommandSource> ctx, boolean raw) {
-    CommandSender sender = ctx.getSource().sender();
-
+  private static int list(CommandSender sender, boolean raw) {
     final Map<String, Waypoint> waypoints = Configs.waypointsConfig().waypoints;
     int size = waypoints.size();
     if (raw) {
@@ -146,17 +143,16 @@ public class WaypointCommand {
     return size;
   }
 
-  private static int add(CommandContext<CommandSource> ctx, String name) throws CommandSyntaxException {
-    Location location = Commands.playerOrException(ctx.getSource().sender()).getLocation();
-    return addPositioned(ctx, name, Vec3I.from(location), location.getWorld());
+  private static int add(CommandSender sender, String name) throws CommandSyntaxException {
+    Location location = Commands.playerOrException(sender).getLocation();
+    return addPositioned(sender, name, Vec3I.from(location), location.getWorld());
   }
 
-  private static int add(CommandContext<CommandSource> ctx, String name, Vec3I position) throws CommandSyntaxException {
-    return addPositioned(ctx, name, position, Commands.playerOrException(ctx.getSource().sender()).getWorld());
+  private static int add(CommandSender sender, String name, Vec3I position) throws CommandSyntaxException {
+    return addPositioned(sender, name, position, Commands.playerOrException(sender).getWorld());
   }
 
-  private static int addPositioned(CommandContext<CommandSource> ctx, String name, Vec3I position, World world) throws CommandSyntaxException {
-    CommandSender sender = ctx.getSource().sender();
+  private static int addPositioned(CommandSender sender, String name, Vec3I position, World world) throws CommandSyntaxException {
     if (Configs.waypointsConfig().waypoints.containsKey(name)) {
       throw new SimpleCommandExceptionType(() -> "\"" + name + "\" already exists").create();
     }
@@ -167,8 +163,7 @@ public class WaypointCommand {
     return 1;
   }
 
-  public static int remove(CommandContext<CommandSource> ctx, String name) throws CommandSyntaxException {
-    CommandSender sender = ctx.getSource().sender();
+  public static int remove(CommandSender sender, String name) throws CommandSyntaxException {
     Waypoint waypoint;
     if ((waypoint = Configs.waypointsConfig().waypoints.remove(name)) == null) {
       throw new SimpleCommandExceptionType(() -> "\"" + name + "\" is not found").create();

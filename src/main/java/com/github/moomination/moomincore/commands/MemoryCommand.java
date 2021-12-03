@@ -1,7 +1,6 @@
 package com.github.moomination.moomincore.commands;
 
 import com.github.moomination.moomincore.SizeUnit;
-import com.github.moomination.moomincore.command.CommandSource;
 import com.github.moomination.moomincore.command.Commands;
 import com.github.moomination.moomincore.command.PluginCommands;
 import me.lucko.commodore.Commodore;
@@ -22,12 +21,11 @@ public final class MemoryCommand {
         .permission("moomination.command.memory")
         .build("", plugin),
       Commands.literal("memory")
-        .executes(ctx -> showMemory(ctx.getSource()))
+        .executes(ctx -> showMemory(commodore.getBukkitSender(ctx)))
     );
   }
 
-  private static int showMemory(CommandSource source) {
-    CommandSender sender = source.sender();
+  private static int showMemory(CommandSender sender) {
     Runtime runtime = Runtime.getRuntime();
     double[] tps = Bukkit.getTPS();
 

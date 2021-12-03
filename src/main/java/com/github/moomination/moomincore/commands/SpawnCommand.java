@@ -3,7 +3,6 @@ package com.github.moomination.moomincore.commands;
 import com.github.moomination.moomincore.command.*;
 import com.github.moomination.moomincore.config.Configs;
 import com.github.moomination.moomincore.event.MoominSpawnEvent;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import me.lucko.commodore.Commodore;
@@ -25,7 +24,6 @@ import java.util.stream.Stream;
 public class SpawnCommand {
 
   public static void register(Commodore commodore, Plugin plugin) {
-    LiteralArgumentBuilder<CommandSource> teleport;
     commodore.register(
       PluginCommands.builder()
         .name("spawn")
@@ -34,24 +32,27 @@ public class SpawnCommand {
         .build("", plugin),
       Commands.literal("spawn")
         .then(
-          teleport = Commands.literal("teleport")
-            .requires(PermissionTest.test("moomination.command.spawn.teleport"))
-            .executes(ctx -> respawn(ctx.getSource().sender(), Commands.playerOrException(ctx.getSource().sender())))
+          Commands.literal("teleport")
+            .requires(PermissionTest.test(commodore, "moomination.command.spawn.teleport"))
+            .executes(ctx -> respawn(commodore.getBukkitSender(ctx), Commands.playerOrException(commodore.getBukkitSender(ctx))))
             .then(Commands.argument("player", NamedArgumentType.player())
-              .executes(ctx -> respawn(ctx.getSource().sender(), ctx.getArgument("player", Player.class)))
+              .executes(ctx -> respawn(commodore.getBukkitSender(ctx), ctx.getArgument("player", Player.class)))
             )
         )
         .then(
           Commands.literal("set")
-            .requires(PermissionTest.test("moomination.command.spawn.set"))
+            .requires(PermissionTest.test(commodore, "moomination.command.spawn.set"))
             .then(Commands.argument("location", CoordinateArgumentType.coordinate())
-              .executes(ctx -> setSpawn(ctx.getSource().sender(), ctx.getArgument("location", Coordinate.class), Commands.playerOrException(ctx.getSource().sender()).getWorld()))
+              .executes(ctx -> setSpawn(commodore.getBukkitSender(ctx), ctx.getArgument("location", Coordinate.class),
+                Commands.playerOrException(commodore.getBukkitSender(ctx)).getWorld()))
               .then(Commands.argument("world", NamedArgumentType.world())
-                .executes(ctx -> setSpawn(ctx.getSource().sender(), ctx.getArgument("location", Coordinate.class), ctx.getArgument("world", World.class)))
+                .executes(ctx -> setSpawn(commodore.getBukkitSender(ctx), ctx.getArgument("location", Coordinate.class),
+                  ctx.getArgument("world", World.class)))
               )
             )
         )
-        .redirect(teleport.build())
+        .requires(PermissionTest.test(commodore, "moomination.command.spawn.teleport"))
+        .executes(ctx -> respawn(commodore.getBukkitSender(ctx), Commands.playerOrException(commodore.getBukkitSender(ctx))))
     );
   }
 

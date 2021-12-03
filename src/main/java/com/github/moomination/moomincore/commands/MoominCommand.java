@@ -8,6 +8,8 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import me.lucko.commodore.Commodore;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 
 import java.io.IOException;
@@ -24,17 +26,18 @@ public class MoominCommand {
       Commands.literal("moomin")
         .then(Commands.literal("config")
           .then(Commands.literal("flush")
-            .executes(ctx -> flush())
+            .executes(ctx -> flush(commodore.getBukkitSender(ctx)))
           )
         )
     );
   }
 
-  private static int flush() throws CommandSyntaxException {
+  private static int flush(CommandSender sender) throws CommandSyntaxException {
     try {
       long start = System.currentTimeMillis();
       Configs.save(MoominCore.getInstance());
       long end = System.currentTimeMillis();
+      sender.sendMessage(ChatColor.GREEN + "Took " + (end - start) + " millis");
       return (int) (end - start);
     } catch (IOException exception) {
       throw new SimpleCommandExceptionType(() -> ExceptionUtils.getStackTrace(exception)).create();

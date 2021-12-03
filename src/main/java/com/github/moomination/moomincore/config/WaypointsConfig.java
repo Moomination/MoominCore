@@ -10,8 +10,8 @@ public class WaypointsConfig implements YamlSerializable {
 
   @SuppressWarnings("unchecked")
   public static WaypointsConfig deserialize(YamlConfiguration data) {
-    Map<String, Waypoint> waypoints = (Map<String, Waypoint>) data.get("waypoints");
-    if (waypoints == null) waypoints = new Object2ObjectLinkedOpenHashMap<>();
+    Map<String, Waypoint> waypoints = (Map<String, Waypoint>) data.get("waypoints",
+      new Object2ObjectLinkedOpenHashMap<>());
     return new WaypointsConfig(waypoints);
   }
 

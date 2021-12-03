@@ -10,11 +10,11 @@ import org.bukkit.entity.Player;
 
 public final class Commands {
 
-  public static LiteralArgumentBuilder<CommandSource> literal(String literal) {
+  public static <S> LiteralArgumentBuilder<S> literal(String literal) {
     return LiteralArgumentBuilder.literal(literal);
   }
 
-  public static <T> RequiredArgumentBuilder<CommandSource, T> argument(final String name, final ArgumentType<T> type) {
+  public static <S, T> RequiredArgumentBuilder<S, T> argument(final String name, final ArgumentType<T> type) {
     return RequiredArgumentBuilder.argument(name, type);
   }
 

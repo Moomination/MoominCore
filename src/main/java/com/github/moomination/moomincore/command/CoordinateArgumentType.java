@@ -1,5 +1,6 @@
 package com.github.moomination.moomincore.command;
 
+import com.github.moomination.moomincore.MoominCore;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -48,11 +49,9 @@ public class CoordinateArgumentType implements ArgumentType<Coordinate> {
     return CompletableFuture.supplyAsync(() -> {
       builder.suggest("~ ~ ~").suggest("^ ^ ^");
       S source = context.getSource();
-      if (source instanceof CommandSource src) {
-        if (src.sender() instanceof Player player) {
-          Location location = player.getLocation();
-          builder.suggest("%d %d %d".formatted(location.getBlockX(), location.getBlockY(), location.getBlockZ()));
-        }
+      if (MoominCore.commodore().getBukkitSender(source) instanceof Player player) {
+        Location location = player.getLocation();
+        builder.suggest("%d %d %d".formatted(location.getBlockX(), location.getBlockY(), location.getBlockZ()));
       }
       return builder.build();
     });
