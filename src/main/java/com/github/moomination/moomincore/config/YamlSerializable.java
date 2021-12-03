@@ -1,12 +1,12 @@
 package com.github.moomination.moomincore.config;
 
-import org.bukkit.configuration.file.YamlConfiguration;
+import java.util.Map;
 
 public interface YamlSerializable {
 
   String id();
 
-  void serialize(YamlConfiguration yaml);
+  Map<String, ?> serialize();
 
   default void save() {
   }

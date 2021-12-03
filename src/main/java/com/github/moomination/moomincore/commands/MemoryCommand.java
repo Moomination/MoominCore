@@ -21,7 +21,7 @@ public final class MemoryCommand {
         .permission("moomination.command.memory")
         .build("", plugin),
       Commands.literal("memory")
-        .executes(ctx -> showMemory(commodore.getBukkitSender(ctx)))
+        .executes(ctx -> showMemory(commodore.getBukkitSender(ctx.getSource())))
     );
   }
 

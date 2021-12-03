@@ -26,7 +26,7 @@ public class MoominCommand {
       Commands.literal("moomin")
         .then(Commands.literal("config")
           .then(Commands.literal("flush")
-            .executes(ctx -> flush(commodore.getBukkitSender(ctx)))
+            .executes(ctx -> flush(commodore.getBukkitSender(ctx.getSource())))
           )
         )
     );

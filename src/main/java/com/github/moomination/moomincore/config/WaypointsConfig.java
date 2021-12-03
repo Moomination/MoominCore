@@ -1,17 +1,16 @@
 package com.github.moomination.moomincore.config;
 
 import com.github.moomination.moomincore.Waypoint;
-import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
-import org.bukkit.configuration.file.YamlConfiguration;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class WaypointsConfig implements YamlSerializable {
 
   @SuppressWarnings("unchecked")
-  public static WaypointsConfig deserialize(YamlConfiguration data) {
-    Map<String, Waypoint> waypoints = (Map<String, Waypoint>) data.get("waypoints",
-      new Object2ObjectLinkedOpenHashMap<>());
+  public static WaypointsConfig deserialize(Map<String, ?> data) {
+    Map<String, Waypoint> waypoints = new LinkedHashMap<>(data.size());
+    data.forEach((k, v) -> waypoints.put(k, Waypoint.deserialize((Map<String, Object>) v)));
     return new WaypointsConfig(waypoints);
   }
 
@@ -27,8 +26,10 @@ public class WaypointsConfig implements YamlSerializable {
   }
 
   @Override
-  public void serialize(YamlConfiguration yaml) {
-    yaml.set("waypoints", waypoints);
+  public Map<String, ?> serialize() {
+    Map<String, Map<String, Object>> serialized = new LinkedHashMap<>();
+    waypoints.forEach((k, v) -> serialized.put(k, v.serialize()));
+    return serialized;
   }
 
 }

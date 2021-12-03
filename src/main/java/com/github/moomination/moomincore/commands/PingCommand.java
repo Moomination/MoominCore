@@ -1,7 +1,7 @@
 package com.github.moomination.moomincore.commands;
 
+import com.github.moomination.moomincore.command.ArgumentTypes;
 import com.github.moomination.moomincore.command.Commands;
-import com.github.moomination.moomincore.command.NamedArgumentType;
 import com.github.moomination.moomincore.command.PermissionTest;
 import com.github.moomination.moomincore.command.PluginCommands;
 import me.lucko.commodore.Commodore;
@@ -25,10 +25,10 @@ public class PingCommand {
         .build("", plugin),
       Commands.literal("ping")
         .requires(PermissionTest.test(commodore, "moomination.command.ping"))
-        .executes(ctx -> ping(commodore.getBukkitSender(ctx), Commands.playerOrException(commodore.getBukkitSender(ctx))))
-        .then(Commands.argument("player", NamedArgumentType.player())
+        .executes(ctx -> ping(commodore.getBukkitSender(ctx.getSource()), Commands.playerOrException(commodore.getBukkitSender(ctx.getSource()))))
+        .then(Commands.argument("player", ArgumentTypes.player())
           .requires(PermissionTest.test(commodore, "moomination.command.ping.other"))
-          .executes(ctx -> ping(commodore.getBukkitSender(ctx), ctx.getArgument("player", Player.class)))
+          .executes(ctx -> ping(commodore.getBukkitSender(ctx.getSource()), ArgumentTypes.player(ctx, "player")))
         )
     );
   }

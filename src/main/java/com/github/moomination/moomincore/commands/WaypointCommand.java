@@ -1,7 +1,10 @@
 package com.github.moomination.moomincore.commands;
 
 import com.github.moomination.moomincore.Waypoint;
-import com.github.moomination.moomincore.command.*;
+import com.github.moomination.moomincore.command.ArgumentTypes;
+import com.github.moomination.moomincore.command.Commands;
+import com.github.moomination.moomincore.command.PermissionTest;
+import com.github.moomination.moomincore.command.PluginCommands;
 import com.github.moomination.moomincore.config.Configs;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -17,6 +20,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.util.Vector;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -34,37 +38,38 @@ public class WaypointCommand {
         .requires(PermissionTest.test(commodore, "moomination.command.waypoint"))
         .then(Commands.literal("list")
           .requires(PermissionTest.test(commodore, "moomination.command.waypoint.list"))
-          .executes(ctx -> list(commodore.getBukkitSender(ctx), false))
+          .executes(ctx -> list(commodore.getBukkitSender(ctx.getSource()), false))
         )
         .then(Commands.literal("add")
           .requires(PermissionTest.test(commodore, "moomination.command.waypoint.add"))
           .then(Commands.argument("name", StringArgumentType.string())
-            .executes(ctx -> add(commodore.getBukkitSender(ctx), ctx.getArgument("name", String.class)))
-            .then(Commands.argument("position", CoordinateArgumentType.coordinate())
+            .executes(ctx -> add(commodore.getBukkitSender(ctx.getSource()), ctx.getArgument("name", String.class)))
+            .then(Commands.argument("position", ArgumentTypes.vec3())
               .requires(PermissionTest.test(commodore, "moomination.command.waypoint.add.positioned"))
-              .executes(ctx -> add(commodore.getBukkitSender(ctx), ctx.getArgument("name", String.class), ctx.getArgument("position", Vec3I.class)))
-              .then(Commands.argument("world", NamedArgumentType.world())
-                .executes(ctx -> addPositioned(commodore.getBukkitSender(ctx), ctx.getArgument("name", String.class), ctx.getArgument("position", Vec3I.class), ctx.getArgument("world", World.class)))
+              .executes(ctx -> add(commodore.getBukkitSender(ctx.getSource()), ctx.getArgument("name", String.class), ArgumentTypes.vec3(ctx, "position")))
+              .then(Commands.argument("world", ArgumentTypes.dimension())
+                .executes(ctx -> addPositioned(commodore.getBukkitSender(ctx.getSource()), ctx.getArgument("name", String.class),
+                  ArgumentTypes.vec3(ctx, "position"), ArgumentTypes.dimension(ctx, "world")))
               )
             )
           )
         )
-        .then(Commands.literal("edit") // Waypoint Composer v2.0
-          .requires(PermissionTest.test(commodore, "moomination.command.waypoint.edit"))
-          .then(Commands.argument("name", StringArgumentType.string())
-            .executes(ctx -> add(commodore.getBukkitSender(ctx), ctx.getArgument("name", String.class)))
-            .then(Commands.argument("position", CoordinateArgumentType.coordinate())
-              .executes(ctx -> add(commodore.getBukkitSender(ctx), ctx.getArgument("name", String.class), ctx.getArgument("position", Vec3I.class)))
-              .then(Commands.argument("world", NamedArgumentType.world())
-                .executes(ctx -> addPositioned(commodore.getBukkitSender(ctx), ctx.getArgument("name", String.class), ctx.getArgument("position", Vec3I.class), ctx.getArgument("world", World.class)))
-              )
-            )
-          )
-        )
+        //        .then(Commands.literal("edit") // Waypoint Composer v2.0
+        //          .requires(PermissionTest.test(commodore, "moomination.command.waypoint.edit"))
+        //          .then(Commands.argument("name", StringArgumentType.string())
+        //            .executes(ctx -> add(commodore.getBukkitSender(ctx.getSource()), ctx.getArgument("name", String.class)))
+        //            .then(Commands.argument("position", Vec3.coordinate())
+        //              .executes(ctx -> add(commodore.getBukkitSender(ctx.getSource()), ctx.getArgument("name", String.class), ctx.getArgument("position", Vec3I.class)))
+        //              .then(Commands.argument("world", NamedArgumentType.world())
+        //                .executes(ctx -> addPositioned(commodore.getBukkitSender(ctx.getSource()), ctx.getArgument("name", String.class), ctx.getArgument("position", Vec3I.class), ctx.getArgument("world", World.class)))
+        //              )
+        //            )
+        //          )
+        //        )
         .then(Commands.literal("remove")
           .requires(PermissionTest.test(commodore, "moomination.command.waypoint.remove"))
           .then(Commands.argument("name", StringArgumentType.string())
-            .executes(ctx -> remove(commodore.getBukkitSender(ctx), ctx.getArgument("name", String.class)))
+            .executes(ctx -> remove(commodore.getBukkitSender(ctx.getSource()), ctx.getArgument("name", String.class)))
           )
         )
       //        .then(Commands.literal("dump")
@@ -145,21 +150,21 @@ public class WaypointCommand {
 
   private static int add(CommandSender sender, String name) throws CommandSyntaxException {
     Location location = Commands.playerOrException(sender).getLocation();
-    return addPositioned(sender, name, Vec3I.from(location), location.getWorld());
+    return addPositioned(sender, name, location.toVector(), location.getWorld());
   }
 
-  private static int add(CommandSender sender, String name, Vec3I position) throws CommandSyntaxException {
+  private static int add(CommandSender sender, String name, Vector position) throws CommandSyntaxException {
     return addPositioned(sender, name, position, Commands.playerOrException(sender).getWorld());
   }
 
-  private static int addPositioned(CommandSender sender, String name, Vec3I position, World world) throws CommandSyntaxException {
+  private static int addPositioned(CommandSender sender, String name, Vector position, World world) throws CommandSyntaxException {
     if (Configs.waypointsConfig().waypoints.containsKey(name)) {
       throw new SimpleCommandExceptionType(() -> "\"" + name + "\" already exists").create();
     }
-    Waypoint waypoint = new Waypoint(world.getName(), position.x(), position.y(), position.z(), name, sender.getName());
+    Waypoint waypoint = new Waypoint(world.getName(), position.getBlockX(), position.getBlockY(), position.getBlockZ(), name, sender.getName());
     Configs.waypointsConfig().waypoints.put(name, waypoint);
     Configs.waypointsConfig().save();
-    sender.sendMessage(locationComponent(ChatColor.GREEN + "Saved as" + name, waypoint));
+    sender.sendMessage(locationComponent(ChatColor.GREEN + "Saved as '" + name + "'", waypoint));
     return 1;
   }
 
@@ -179,19 +184,19 @@ public class WaypointCommand {
         Component.text(waypoint.name())
           .append(Component.newline())
           .append(Component.text("World: ", TextColor.color(0, 255, 0)))
-          .append(Component.text(waypoint.world(), TextColor.color(255, 255, 255)))
+          .append(Component.text(waypoint.world(), TextColor.color(255, 255, 0)))
           .append(Component.newline())
           .append(Component.text("X: ", TextColor.color(0, 255, 0)))
-          .append(Component.text(waypoint.x(), TextColor.color(255, 255, 255)))
+          .append(Component.text(waypoint.x(), TextColor.color(255, 255, 0)))
           .append(Component.newline())
           .append(Component.text("Y: ", TextColor.color(0, 255, 0)))
-          .append(Component.text(waypoint.y(), TextColor.color(255, 255, 255)))
+          .append(Component.text(waypoint.y(), TextColor.color(255, 255, 0)))
           .append(Component.newline())
           .append(Component.text("Z: ", TextColor.color(0, 255, 0)))
-          .append(Component.text(waypoint.z(), TextColor.color(255, 255, 25)))
+          .append(Component.text(waypoint.z(), TextColor.color(255, 255, 0)))
           .append(Component.newline())
           .append(Component.text("Registered by: ", TextColor.color(0, 255, 0)))
-          .append(Component.text(waypoint.playerName(), TextColor.color(255, 255, 25)))
+          .append(Component.text(waypoint.playerName(), TextColor.color(255, 255, 0)))
           .append(Component.newline())
           .append(Component.newline())
           .append(Component.text("Click to copy location..."))

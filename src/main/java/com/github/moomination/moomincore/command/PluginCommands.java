@@ -1,5 +1,6 @@
 package com.github.moomination.moomincore.command;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
@@ -21,6 +22,8 @@ public final class PluginCommands {
 
   private static final MethodHandle GET_COMMAND_MAP;
   private static final MethodHandle CONSTRUCTOR_PLUGIN_COMMAND;
+
+  private static final List<PluginCommand> REGISTERED = new ObjectArrayList<>();
 
   static {
     try {
@@ -49,6 +52,8 @@ public final class PluginCommands {
     command.setPermission(permission);
     command.setDescription(description);
     command.setAliases(aliases);
+    command.setExecutor(BukkitToNative.executor());
+    REGISTERED.add(command);
     commandMap.register(prefix, command);
     return command;
   }
