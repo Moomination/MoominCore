@@ -1,5 +1,6 @@
-package site.moomination.listeners;
+package com.github.moomination.moomincore.listeners;
 
+import com.github.moomination.moomincore.MoominCore;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -11,7 +12,6 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.projectiles.ProjectileSource;
-import site.moomination.Main;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,7 +23,9 @@ public class BossDamageListener implements Listener {
 
   @EventHandler
   public void onBossDamagedByEntity(EntityDamageByEntityEvent event) {
-    if (event.getEntityType() != EntityType.WITHER && event.getEntityType() != EntityType.ENDER_DRAGON) return;
+    if (event.getEntityType() != EntityType.WITHER && event.getEntityType() != EntityType.ENDER_DRAGON) {
+      return;
+    }
     Entity victim = event.getEntity();
     Player player;
     if (event.getDamager() instanceof Player) {
@@ -58,7 +60,7 @@ public class BossDamageListener implements Listener {
     } else {
       damages = new HashMap<>();
       damages.put(player, (int) Math.round(event.getFinalDamage()));
-      victim.setMetadata(KEY_DAMAGES, new FixedMetadataValue(Main.getInstance(), damages));
+      victim.setMetadata(KEY_DAMAGES, new FixedMetadataValue(MoominCore.getInstance(), damages));
     }
   }
 

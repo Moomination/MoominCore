@@ -1,13 +1,7 @@
-coordinates: {}
-
-prefixes: {}
-
-nophantom: true
-
-twitter:
-  enabled: false
-  consumerkey: ""
-  consumersecret: ""
-  accesstoken: ""
-  accesstokensecret: ""
-  deathmessage: true
+discord:
+  webhooks: []
+  messages:
+    player.death: true
+    player.join: false
+    player.leave: false
+    player.broadcast: false

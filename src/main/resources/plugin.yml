@@ -1,4 +1,4 @@
 name: MoominCore
 version: ${project.version}
-main: site.moomination.Main
-api-version: 1.15
+main: com.github.moomination.moomincore.MoominCore
+api-version: 1.18
