@@ -13,8 +13,6 @@ import java.lang.invoke.MethodType;
 import java.lang.invoke.MutableCallSite;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 final class BukkitToNative {
 
@@ -79,19 +77,13 @@ final class BukkitToNative {
 
   public static CommandExecutor executor() {
     Object dispatcher = dispatcher();
-    Logger logger = MoominCore.getInstance().getLogger();
     return (sender, command, label, args) -> {
       try {
         Object wrapper = getListener(sender);
-        logger.info("Wrapper is " + wrapper);
         PERFORM_COMMAND.invoke(dispatcher, wrapper, joinArguments(args, command.getName()), joinArguments(args, label), true);
-        logger.info("Done");
-
       } catch (Throwable throwable) {
-        logger.log(Level.SEVERE, "", throwable);
         throw new CommandException("", throwable);
       }
-      logger.info("All done");
       return true;
     };
   }
@@ -99,8 +91,7 @@ final class BukkitToNative {
   private static Object dispatcher() {
     try {
       Object dedicatedServer = GET_CONSOLE_FIELD.invoke(Bukkit.getServer());
-      Object commandDispatcher = GET_COMMAND_DISPATCHER.invoke(dedicatedServer);
-      return commandDispatcher;
+      return GET_COMMAND_DISPATCHER.invoke(dedicatedServer);
     } catch (Throwable exception) {
       throw new RuntimeException(exception);
     }

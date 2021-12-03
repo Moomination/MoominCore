@@ -1,16 +1,17 @@
 package com.github.moomination.moomincore.command;
 
+import com.github.moomination.moomincore.command.interop.DimensionNativeToBukkit;
+import com.github.moomination.moomincore.command.interop.EntityNativeToBukkit;
+import com.github.moomination.moomincore.command.interop.Vec3NativeToBukkit;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import me.lucko.commodore.MinecraftArgumentTypes;
-import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.lang.reflect.Constructor;
-import java.util.function.Function;
 
 public final class ArgumentTypes {
 
@@ -69,22 +70,16 @@ public final class ArgumentTypes {
   private ArgumentTypes() {
   }
 
-  public static <T> T nmsArgument(CommandContext<?> ctx, String argumentName, Function<Object, T> mapper) {
-    Object argument = ctx.getArgument(argumentName, Object.class);
-    System.out.println(argument);
-    return mapper.apply(argument);
-  }
-
   public static Player player(CommandContext<?> ctx, String argumentName) {
-    return nmsArgument(ctx, argumentName, __ -> Bukkit.getPlayer("GolfIt"));
+    return EntityNativeToBukkit.player(ctx, argumentName);
   }
 
   public static Vector vec3(CommandContext<?> ctx, String argumentName) {
-    return nmsArgument(ctx, argumentName, __ -> new Vector(0, 0, 0));
+    return Vec3NativeToBukkit.vec3(ctx, argumentName);
   }
 
   public static World dimension(CommandContext<?> ctx, String argumentName) {
-    return nmsArgument(ctx, argumentName, __ -> Bukkit.getWorld("world"));
+    return DimensionNativeToBukkit.dimension(ctx, argumentName);
   }
 
 }

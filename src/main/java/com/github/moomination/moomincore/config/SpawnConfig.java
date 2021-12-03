@@ -1,19 +1,21 @@
 package com.github.moomination.moomincore.config;
 
+import com.github.moomination.moomincore.Spawn;
 import com.google.common.collect.ImmutableMap;
-import org.bukkit.Location;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
 public class SpawnConfig implements YamlSerializable {
 
+  @SuppressWarnings("unchecked")
   public static SpawnConfig deserialize(Map<String, ?> data) {
-    Location spawn = (Location) data.get("spawn");
+    Map<String, Object> spawnMap = (Map<String, Object>) data.get("spawn");
+    Spawn spawn = spawnMap == null ? null : Spawn.deserialize(spawnMap);
     return new SpawnConfig(spawn);
   }
 
-  public @Nullable Location spawn;
+  public @Nullable Spawn spawn;
   public int fee;
 
   public SpawnConfig() {
@@ -24,13 +26,13 @@ public class SpawnConfig implements YamlSerializable {
     return "spawn";
   }
 
-  public SpawnConfig(Location spawn) {
+  public SpawnConfig(Spawn spawn) {
     this.spawn = spawn;
   }
 
   public Map<String, Object> serialize() {
     ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
-    if (spawn != null) builder.put("spawn", spawn);
+    if (spawn != null) builder.put("spawn", spawn.serialize());
     builder.put("fee", fee);
     return builder.build();
   }

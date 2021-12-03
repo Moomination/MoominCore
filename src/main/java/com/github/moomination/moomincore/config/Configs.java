@@ -1,7 +1,10 @@
 package com.github.moomination.moomincore.config;
 
 import org.bukkit.plugin.Plugin;
+import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
+import org.yaml.snakeyaml.representer.Representer;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -17,7 +20,15 @@ import java.util.Map;
 
 public final class Configs {
 
-  private static final Yaml YAML = new Yaml();
+  private static final Yaml YAML;
+
+  static {
+    DumperOptions dumperOptions = new DumperOptions();
+    dumperOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+    Representer representer = new Representer();
+    representer.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+    YAML = new Yaml(new Constructor(), representer, dumperOptions);
+  }
 
   private static SpawnConfig spawnConfig;
   private static WaypointsConfig waypointsConfig;

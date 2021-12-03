@@ -1,5 +1,6 @@
 package com.github.moomination.moomincore.commands;
 
+import com.github.moomination.moomincore.Spawn;
 import com.github.moomination.moomincore.command.ArgumentTypes;
 import com.github.moomination.moomincore.command.Commands;
 import com.github.moomination.moomincore.command.PermissionTest;
@@ -22,8 +23,7 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 
-import java.util.Objects;
-import java.util.stream.Stream;
+import java.util.Optional;
 
 public class SpawnCommand {
 
@@ -35,25 +35,25 @@ public class SpawnCommand {
         .permission("moomination.command.spawn")
         .build("", plugin),
       Commands.literal("spawn")
-        .then(
-          Commands.literal("teleport")
-            .requires(PermissionTest.test(commodore, "moomination.command.spawn.teleport"))
-            .executes(ctx -> respawn(commodore.getBukkitSender(ctx.getSource()), Commands.playerOrException(commodore.getBukkitSender(ctx.getSource()))))
-            .then(Commands.argument("player", ArgumentTypes.player())
-              .executes(ctx -> respawn(commodore.getBukkitSender(ctx.getSource()), ArgumentTypes.player(ctx, "player"))
-              )
+        .then(Commands.literal("teleport")
+          .requires(PermissionTest.test(commodore, "moomination.command.spawn.teleport"))
+          .executes(ctx -> respawn(commodore.getBukkitSender(ctx.getSource()), Commands.playerOrException(commodore.getBukkitSender(ctx.getSource()))))
+          .then(Commands.argument("player", ArgumentTypes.player())
+            .executes(ctx -> respawn(commodore.getBukkitSender(ctx.getSource()), ArgumentTypes.player(ctx, "player")))
+          )
+        )
+        .then(Commands.literal("set")
+          .requires(PermissionTest.test(commodore, "moomination.command.spawn.set"))
+          .executes(ctx -> setSpawn(commodore.getBukkitSender(ctx.getSource()), Commands.playerOrException(commodore.getBukkitSender(ctx.getSource())).getLocation().toVector(),
+            Commands.playerOrException(commodore.getBukkitSender(ctx.getSource())).getWorld()))
+          .then(Commands.argument("location", ArgumentTypes.vec3())
+            .executes(ctx -> setSpawn(commodore.getBukkitSender(ctx.getSource()), ArgumentTypes.vec3(ctx, "location"),
+              Commands.playerOrException(commodore.getBukkitSender(ctx.getSource())).getWorld()))
+            .then(Commands.argument("dimension", ArgumentTypes.dimension())
+              .executes(ctx -> setSpawn(commodore.getBukkitSender(ctx.getSource()), ArgumentTypes.vec3(ctx, "location"),
+                ArgumentTypes.dimension(ctx, "dimension")))
             )
-            .then(
-              Commands.literal("set")
-                .requires(PermissionTest.test(commodore, "moomination.command.spawn.set"))
-                .then(Commands.argument("location", ArgumentTypes.vec3())
-                  .executes(ctx -> setSpawn(commodore.getBukkitSender(ctx.getSource()), ArgumentTypes.vec3(ctx, "location"),
-                    Commands.playerOrException(commodore.getBukkitSender(ctx.getSource())).getWorld()))
-                  .then(Commands.argument("dimension", ArgumentTypes.dimension()))
-                  .executes(ctx -> setSpawn(commodore.getBukkitSender(ctx.getSource()), ArgumentTypes.vec3(ctx, "location"),
-                    ArgumentTypes.dimension(ctx, "dimension")))
-                )
-            )
+          )
         )
         .requires(PermissionTest.test(commodore, "moomination.command.spawn.teleport"))
         .executes(ctx -> respawn(commodore.getBukkitSender(ctx.getSource()), Commands.playerOrException(commodore.getBukkitSender(ctx.getSource()))))
@@ -61,11 +61,10 @@ public class SpawnCommand {
   }
 
   private static int respawn(CommandSender sender, Player teleportee) throws CommandSyntaxException {
-    final Location spawn = Stream
-      .of(Configs.spawnConfig().spawn, teleportee.getBedSpawnLocation(), teleportee.getWorld().getSpawnLocation())
-      .filter(Objects::nonNull)
-      .findFirst()
-      .orElseGet(teleportee::getLocation);
+    Location spawn = Optional.ofNullable(Configs.spawnConfig().spawn)
+      .map(Spawn::toLocation)
+      .or(() -> Optional.ofNullable(teleportee.getBedSpawnLocation()))
+      .orElseGet(teleportee.getWorld()::getSpawnLocation);
     MoominSpawnEvent event = new MoominSpawnEvent(sender, teleportee, spawn);
     Bukkit.getPluginManager().callEvent(event);
     if (event.isCancelled()) {
@@ -87,7 +86,7 @@ public class SpawnCommand {
 
   private static int setSpawn(CommandSender sender, Vector vec3, World world) throws CommandSyntaxException {
     Location location = vec3.toLocation(world);
-    Configs.spawnConfig().spawn = location;
+    Configs.spawnConfig().spawn = Spawn.from(location);
     sender.sendMessage("Spawn was set to " + location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ());
     return 1;
   }
