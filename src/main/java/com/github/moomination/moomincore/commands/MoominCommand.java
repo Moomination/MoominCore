@@ -2,6 +2,7 @@ package com.github.moomination.moomincore.commands;
 
 import com.github.moomination.moomincore.MoominCore;
 import com.github.moomination.moomincore.command.Commands;
+import com.github.moomination.moomincore.command.PermissionTest;
 import com.github.moomination.moomincore.command.PluginCommands;
 import com.github.moomination.moomincore.config.Configs;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -25,17 +26,20 @@ public class MoominCommand {
       PluginCommands.builder()
         .name("moomin")
         .description("Adjusts MoominCore")
-        .permission("moomincore.command.moomin")
         .build(plugin),
       Commands.literal("moomin")
         .then(Commands.literal("config")
           .then(Commands.literal("flush")
-            .executes(ctx -> flush(commodore.getBukkitSender(ctx.getSource())))
+            .executes(PermissionTest.test(commodore, "moomincore.command.moomin",
+              ctx -> flush(commodore.getBukkitSender(ctx.getSource()))
+            ))
           )
         )
         .then(Commands.literal("unload")
           .then(Commands.argument("plugin", StringArgumentType.string())
-            .executes(ctx -> unload(commodore.getBukkitSender(ctx.getSource()), StringArgumentType.getString(ctx, "plugin")))
+            .executes(PermissionTest.test(commodore, "moomincore.command.moomin",
+              ctx -> unload(commodore.getBukkitSender(ctx.getSource()), StringArgumentType.getString(ctx, "plugin"))
+            ))
           )
         )
     );

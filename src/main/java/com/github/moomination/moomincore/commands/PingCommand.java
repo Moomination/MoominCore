@@ -22,14 +22,15 @@ public class PingCommand {
       PluginCommands.builder()
         .name("ping")
         .description("Displays your network latency")
-        .permission("moomincore.command.ping")
         .build(plugin),
       Commands.literal("ping")
-        .requires(PermissionTest.test(commodore, "moomincore.command.ping"))
-        .executes(ctx -> ping(commodore.getBukkitSender(ctx.getSource()), Commands.playerOrException(commodore.getBukkitSender(ctx.getSource()))))
+        .executes(PermissionTest.test(commodore, "moomincore.command.ping",
+          ctx -> ping(commodore.getBukkitSender(ctx.getSource()), Commands.playerOrException(commodore.getBukkitSender(ctx.getSource())))
+        ))
         .then(Commands.argument("player", ArgumentTypes.player())
-          .requires(PermissionTest.test(commodore, "moomincore.command.ping.other"))
-          .executes(ctx -> ping(commodore.getBukkitSender(ctx.getSource()), ArgumentTypes.player(ctx, "player")))
+          .executes(PermissionTest.test(commodore, "moomincore.command.ping.other",
+            ctx -> ping(commodore.getBukkitSender(ctx.getSource()), ArgumentTypes.player(ctx, "player"))
+          ))
         )
     );
   }

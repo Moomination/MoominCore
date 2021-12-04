@@ -2,6 +2,8 @@ package com.github.moomination.moomincore.command;
 
 import com.github.moomination.moomincore.MoominCore;
 import com.github.moomination.moomincore.command.interop.Reflections;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
+import com.mojang.brigadier.tree.CommandNode;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.command.CommandException;
@@ -29,6 +31,8 @@ final class BukkitToNative {
   private static final MethodHandle GET_COMMAND_DISPATCHER = GET_COMMAND_DISPATCHER_CALLSITE.dynamicInvoker();
   private static final MutableCallSite PERFORM_COMMAND_CALLSITE = new MutableCallSite(MethodType.methodType(int.class, Object.class /* CommandDispatcher */, Object.class /* CommandListenerWrapper */, String.class, String.class, boolean.class));
   private static final MethodHandle PERFORM_COMMAND = PERFORM_COMMAND_CALLSITE.dynamicInvoker();
+  private static final MutableCallSite SET_CUSTOM_SUGGESTIONS_PROVIDER_CALLSITE = new MutableCallSite(MethodType.methodType(void.class, CommandNode.class, SuggestionProvider.class));
+  private static final MethodHandle SET_CUSTOM_SUGGESTIONS_PROVIDER = SET_CUSTOM_SUGGESTIONS_PROVIDER_CALLSITE.dynamicInvoker();
 
   static {
     try {
@@ -56,6 +60,10 @@ final class BukkitToNative {
       Method performCommand = CLASS_COMMAND_DISPATCHER.getDeclaredMethod("performCommand", CLASS_COMMAND_LISTENER_WRAPPER, String.class, String.class, boolean.class);
       performCommand.setAccessible(true);
       Reflections.bind(PERFORM_COMMAND_CALLSITE, MethodHandles.lookup().unreflect(performCommand));
+
+      Method setCustomSuggestionProvider = commodoreImpl.getDeclaredMethod("setCustomSuggestionProvider", CommandNode.class, SuggestionProvider.class);
+      setCustomSuggestionProvider.setAccessible(true);
+      Reflections.bind(SET_CUSTOM_SUGGESTIONS_PROVIDER_CALLSITE, MethodHandles.lookup().unreflect(setCustomSuggestionProvider));
     } catch (ReflectiveOperationException exception) {
       throw new ExceptionInInitializerError(exception);
     }
@@ -76,6 +84,14 @@ final class BukkitToNative {
       }
       return true;
     };
+  }
+
+  public static void setCustomSuggestionsProvider(CommandNode<?> node, SuggestionProvider provider) {
+    try {
+      SET_CUSTOM_SUGGESTIONS_PROVIDER.invoke(node, provider);
+    } catch (Throwable exception) {
+      throw new RuntimeException(exception);
+    }
   }
 
   private static Object dispatcher() {

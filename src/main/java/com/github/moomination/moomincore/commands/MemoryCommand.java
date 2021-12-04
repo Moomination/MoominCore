@@ -2,6 +2,7 @@ package com.github.moomination.moomincore.commands;
 
 import com.github.moomination.moomincore.SizeUnit;
 import com.github.moomination.moomincore.command.Commands;
+import com.github.moomination.moomincore.command.PermissionTest;
 import com.github.moomination.moomincore.command.PluginCommands;
 import me.lucko.commodore.Commodore;
 import org.bukkit.Bukkit;
@@ -19,10 +20,11 @@ public final class MemoryCommand {
       PluginCommands.builder()
         .name("memory")
         .description("Shows about current JVM heap and TPS (tick per second).")
-        .permission("moomincore.command.memory")
         .build(plugin),
       Commands.literal("memory")
-        .executes(ctx -> showMemory(commodore.getBukkitSender(ctx.getSource())))
+        .executes(PermissionTest.test(commodore, "moomincore.command.memory",
+          ctx -> showMemory(commodore.getBukkitSender(ctx.getSource()))
+        ))
     );
   }
 

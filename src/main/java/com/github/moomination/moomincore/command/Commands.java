@@ -29,9 +29,10 @@ public final class Commands {
   }
 
   public static <S> LiteralCommandNode<S> register(Commodore commodore, Command command, LiteralArgumentBuilder<S> argumentBuilder) {
-    LiteralCommandNode<S> base = argumentBuilder.build();
-    commodore.register(command, base);
-    return base;
+    LiteralCommandNode<S> node = argumentBuilder.build();
+    commodore.register(command, node);
+    BukkitToNative.setCustomSuggestionsProvider(node, null);
+    return node;
   }
 
   private Commands() {

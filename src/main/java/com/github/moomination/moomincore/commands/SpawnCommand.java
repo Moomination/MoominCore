@@ -33,31 +33,38 @@ public class SpawnCommand {
       PluginCommands.builder()
         .name("spawn")
         .description("Teleport to spawn point")
-        .permission("moomincore.command.spawn")
         .build(plugin),
       Commands.literal("spawn")
         .then(Commands.literal("teleport")
-          .requires(PermissionTest.test(commodore, "moomincore.command.spawn.teleport"))
-          .executes(ctx -> respawn(commodore.getBukkitSender(ctx.getSource()), Commands.playerOrException(commodore.getBukkitSender(ctx.getSource()))))
+          .executes(PermissionTest.test(commodore, "moomincore.command.spawn.teleport",
+            ctx -> respawn(commodore.getBukkitSender(ctx.getSource()), Commands.playerOrException(commodore.getBukkitSender(ctx.getSource())))
+          ))
           .then(Commands.argument("player", ArgumentTypes.player())
-            .requires(PermissionTest.test(commodore, "moomincore.command.spawn.teleport.other"))
-            .executes(ctx -> respawn(commodore.getBukkitSender(ctx.getSource()), ArgumentTypes.player(ctx, "player")))
+            .executes(PermissionTest.test(commodore, "moomincore.command.spawn.teleport.other",
+              ctx -> respawn(commodore.getBukkitSender(ctx.getSource()), ArgumentTypes.player(ctx, "player"))
+            ))
           )
         )
         .then(Commands.literal("set")
-          .requires(PermissionTest.test(commodore, "moomination.command.spawn.set"))
-          .executes(ctx -> setSpawn(commodore.getBukkitSender(ctx.getSource()), Commands.playerOrException(commodore.getBukkitSender(ctx.getSource())).getLocation().toVector(),
-            Commands.playerOrException(commodore.getBukkitSender(ctx.getSource())).getWorld()))
+          .executes(PermissionTest.test(commodore, "moomincore.command.spawn.set",
+            ctx -> setSpawn(commodore.getBukkitSender(ctx.getSource()), Commands.playerOrException(commodore.getBukkitSender(ctx.getSource())).getLocation().toVector(),
+              Commands.playerOrException(commodore.getBukkitSender(ctx.getSource())).getWorld())
+          ))
           .then(Commands.argument("location", ArgumentTypes.vec3())
-            .executes(ctx -> setSpawn(commodore.getBukkitSender(ctx.getSource()), ArgumentTypes.vec3(ctx, "location"),
-              Commands.playerOrException(commodore.getBukkitSender(ctx.getSource())).getWorld()))
+            .executes(
+              PermissionTest.test(commodore, "moomincore.command.spawn.set",
+                ctx -> setSpawn(commodore.getBukkitSender(ctx.getSource()), ArgumentTypes.vec3(ctx, "location"),
+                  Commands.playerOrException(commodore.getBukkitSender(ctx.getSource())).getWorld())
+              ))
             .then(Commands.argument("dimension", ArgumentTypes.dimension())
-              .executes(ctx -> setSpawn(commodore.getBukkitSender(ctx.getSource()), ArgumentTypes.vec3(ctx, "location"),
-                ArgumentTypes.dimension(ctx, "dimension")))
+              .executes(PermissionTest.test(commodore, "moomincore.command.spawn.set",
+                ctx -> setSpawn(commodore.getBukkitSender(ctx.getSource()), ArgumentTypes.vec3(ctx, "location"),
+                  ArgumentTypes.dimension(ctx, "dimension"))
+              ))
             )
           )
         )
-        .requires(PermissionTest.test(commodore, "moomination.command.spawn.teleport"))
+        .requires(PermissionTest.test(commodore, "moomincore.command.spawn.teleport"))
         .executes(ctx -> respawn(commodore.getBukkitSender(ctx.getSource()), Commands.playerOrException(commodore.getBukkitSender(ctx.getSource()))))
     );
   }

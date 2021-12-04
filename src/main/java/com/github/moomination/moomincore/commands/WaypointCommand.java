@@ -34,32 +34,35 @@ public class WaypointCommand {
         .name("waypoint")
         .aliases("waypoints", "wp")
         .description("Server-side waypoint")
-        .permission("moomincore.command.waypoint")
         .build(plugin),
       Commands.literal("waypoint")
-        .requires(PermissionTest.test(commodore, "moomincore.command.waypoint"))
         .then(Commands.literal("list")
-          .requires(PermissionTest.test(commodore, "moomincore.command.waypoint.list"))
-          .executes(ctx -> list(commodore.getBukkitSender(ctx.getSource()), false))
+          .executes(PermissionTest.test(commodore, "moomincore.command.waypoint.list",
+            ctx -> list(commodore.getBukkitSender(ctx.getSource()), false)
+          ))
         )
         .then(Commands.literal("add")
-          .requires(PermissionTest.test(commodore, "moomincore.command.waypoint.add"))
           .then(Commands.argument("name", StringArgumentType.string())
-            .executes(ctx -> add(commodore.getBukkitSender(ctx.getSource()), ctx.getArgument("name", String.class)))
+            .executes(PermissionTest.test(commodore, "moomincore.command.waypoint.add",
+              ctx -> add(commodore.getBukkitSender(ctx.getSource()), ctx.getArgument("name", String.class))
+            ))
             .then(Commands.argument("position", ArgumentTypes.vec3())
-              .requires(PermissionTest.test(commodore, "moomincore.command.waypoint.add.positioned"))
-              .executes(ctx -> add(commodore.getBukkitSender(ctx.getSource()), ctx.getArgument("name", String.class), ArgumentTypes.vec3(ctx, "position")))
+              .executes(PermissionTest.test(commodore, "moomincore.command.waypoint.add.positioned",
+                ctx -> add(commodore.getBukkitSender(ctx.getSource()), ctx.getArgument("name", String.class), ArgumentTypes.vec3(ctx, "position"))
+              ))
               .then(Commands.argument("world", ArgumentTypes.dimension())
-                .executes(ctx -> addPositioned(commodore.getBukkitSender(ctx.getSource()), ctx.getArgument("name", String.class),
-                  ArgumentTypes.vec3(ctx, "position"), ArgumentTypes.dimension(ctx, "world")))
-              )
+                .executes(PermissionTest.test(commodore, "moomincore.command.waypoint.add.positioned",
+                  ctx -> addPositioned(commodore.getBukkitSender(ctx.getSource()), ctx.getArgument("name", String.class),
+                    ArgumentTypes.vec3(ctx, "position"), ArgumentTypes.dimension(ctx, "world")))
+                ))
             )
           )
         )
         .then(Commands.literal("remove")
-          .requires(PermissionTest.test(commodore, "moomincore.command.waypoint.remove"))
           .then(Commands.argument("name", StringArgumentType.string())
-            .executes(ctx -> remove(commodore.getBukkitSender(ctx.getSource()), ctx.getArgument("name", String.class)))
+            .executes(PermissionTest.test(commodore, "moomincore.command.waypoint.remove",
+              ctx -> remove(commodore.getBukkitSender(ctx.getSource()), ctx.getArgument("name", String.class))
+            ))
           )
         )
     );
