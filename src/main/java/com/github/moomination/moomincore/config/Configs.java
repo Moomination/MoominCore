@@ -1,5 +1,7 @@
 package com.github.moomination.moomincore.config;
 
+import com.github.moomination.moomincore.config.spawn.SpawnConfig;
+import com.github.moomination.moomincore.config.waypoint.WaypointsConfig;
 import org.bukkit.plugin.Plugin;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;

@@ -14,12 +14,13 @@ import java.util.stream.Stream;
 public final class MemoryCommand {
 
   public static void register(Commodore commodore, Plugin plugin) {
-    commodore.register(
+    Commands.register(
+      commodore,
       PluginCommands.builder()
         .name("memory")
         .description("Shows about current JVM heap and TPS (tick per second).")
-        .permission("moomination.command.memory")
-        .build("", plugin),
+        .permission("moomincore.command.memory")
+        .build(plugin),
       Commands.literal("memory")
         .executes(ctx -> showMemory(commodore.getBukkitSender(ctx.getSource())))
     );

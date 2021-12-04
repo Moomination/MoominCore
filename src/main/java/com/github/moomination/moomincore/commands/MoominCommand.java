@@ -20,12 +20,13 @@ import java.io.IOException;
 public class MoominCommand {
 
   public static void register(Commodore commodore, Plugin plugin) {
-    commodore.register(
+    Commands.register(
+      commodore,
       PluginCommands.builder()
         .name("moomin")
         .description("Adjusts MoominCore")
-        .permission("moomination.command.moomin")
-        .build("", plugin),
+        .permission("moomincore.command.moomin")
+        .build(plugin),
       Commands.literal("moomin")
         .then(Commands.literal("config")
           .then(Commands.literal("flush")

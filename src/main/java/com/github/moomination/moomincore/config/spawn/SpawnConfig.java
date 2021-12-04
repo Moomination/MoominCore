@@ -1,6 +1,6 @@
-package com.github.moomination.moomincore.config;
+package com.github.moomination.moomincore.config.spawn;
 
-import com.github.moomination.moomincore.Spawn;
+import com.github.moomination.moomincore.config.YamlSerializable;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.Nullable;
 

@@ -1,6 +1,6 @@
-package com.github.moomination.moomincore.config;
+package com.github.moomination.moomincore.config.waypoint;
 
-import com.github.moomination.moomincore.Waypoint;
+import com.github.moomination.moomincore.config.YamlSerializable;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

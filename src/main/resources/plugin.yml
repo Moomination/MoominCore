@@ -2,3 +2,49 @@ name: MoominCore
 version: ${project.version}
 main: com.github.moomination.moomincore.MoominCore
 api-version: 1.18
+
+permissions:
+  moomincore.command:
+    default: false
+    children:
+      - moomincore.command.memory
+      - moomincore.command.moomin
+      - moomincore.command.ping
+      - moomincore.command.spawn
+      - moomincore.command.shogi
+      - moomincore.command.waypoint
+  moomincore.command.memory:
+    default: op
+  moomincore.command.moomin:
+    default: op
+  moomincore.command.ping:
+    default: true
+  moomincore.command.spawn:
+    default: false
+    children:
+      - moomincore.command.spawn.teleport
+      - moomincore.command.spawn.set
+  moomincore.command.spawn.teleport:
+    default: true
+  moomincore.command.spawn.set:
+    default: op
+  moomincore.command.shogi:
+    default: true
+  moomincore.command.waypoint:
+    default: false
+    children:
+      - moomincore.command.waypoint.list
+      - moomincore.command.waypoint.add
+      - moomincore.command.waypoint.add.positioned
+      - moomincore.command.waypoint.remove
+      - moomincore.command.waypoint.remove.other
+  moomincore.command.waypoint.list:
+    default: true
+  moomincore.command.waypoint.add:
+    default: true
+  moomincore.command.waypoint.add.positioned:
+    default: op
+  moomincore.command.remove:
+    default: true
+  moomincore.command.remove.other:
+    default: op

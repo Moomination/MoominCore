@@ -95,7 +95,7 @@ public final class PluginCommands {
 
     PluginCommandBuilder permission(String permission);
 
-    PluginCommand build(String prefix, Plugin plugin);
+    PluginCommand build(Plugin plugin);
 
   }
 
@@ -130,8 +130,8 @@ public final class PluginCommands {
       return this;
     }
 
-    public PluginCommand build(String prefix, Plugin plugin) {
-      return register(prefix, plugin, name, description, aliases, permission);
+    public PluginCommand build(Plugin plugin) {
+      return register(plugin.getDescription().getName(), plugin, name, description, aliases, permission);
     }
 
   }

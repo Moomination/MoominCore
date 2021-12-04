@@ -17,17 +17,18 @@ public class PingCommand {
   private static final int POOR = 160;
 
   public static void register(Commodore commodore, Plugin plugin) {
-    commodore.register(
+    Commands.register(
+      commodore,
       PluginCommands.builder()
         .name("ping")
         .description("Displays your network latency")
-        .permission("moomination.command.ping")
-        .build("", plugin),
+        .permission("moomincore.command.ping")
+        .build(plugin),
       Commands.literal("ping")
-        .requires(PermissionTest.test(commodore, "moomination.command.ping"))
+        .requires(PermissionTest.test(commodore, "moomincore.command.ping"))
         .executes(ctx -> ping(commodore.getBukkitSender(ctx.getSource()), Commands.playerOrException(commodore.getBukkitSender(ctx.getSource()))))
         .then(Commands.argument("player", ArgumentTypes.player())
-          .requires(PermissionTest.test(commodore, "moomination.command.ping.other"))
+          .requires(PermissionTest.test(commodore, "moomincore.command.ping.other"))
           .executes(ctx -> ping(commodore.getBukkitSender(ctx.getSource()), ArgumentTypes.player(ctx, "player")))
         )
     );

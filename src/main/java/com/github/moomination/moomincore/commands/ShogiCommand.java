@@ -10,12 +10,13 @@ import org.bukkit.plugin.Plugin;
 public class ShogiCommand {
 
   public static void register(Commodore commodore, Plugin plugin) {
-    commodore.register(
+    Commands.register(
+      commodore,
       PluginCommands.builder()
         .name("shogi")
         .description("Shogi!")
-        .permission("moomination.command.shogi")
-        .build("", plugin),
+        .permission("moomincore.command.shogi")
+        .build(plugin),
       Commands.literal("shogi").executes(ctx -> shogi(commodore.getBukkitSender(ctx.getSource())))
     );
   }

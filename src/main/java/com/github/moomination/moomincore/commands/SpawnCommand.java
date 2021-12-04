@@ -1,11 +1,11 @@
 package com.github.moomination.moomincore.commands;
 
-import com.github.moomination.moomincore.Spawn;
 import com.github.moomination.moomincore.command.ArgumentTypes;
 import com.github.moomination.moomincore.command.Commands;
 import com.github.moomination.moomincore.command.PermissionTest;
 import com.github.moomination.moomincore.command.PluginCommands;
 import com.github.moomination.moomincore.config.Configs;
+import com.github.moomination.moomincore.config.spawn.Spawn;
 import com.github.moomination.moomincore.event.MoominSpawnEvent;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
@@ -28,17 +28,19 @@ import java.util.Optional;
 public class SpawnCommand {
 
   public static void register(Commodore commodore, Plugin plugin) {
-    commodore.register(
+    Commands.register(
+      commodore,
       PluginCommands.builder()
         .name("spawn")
         .description("Teleport to spawn point")
-        .permission("moomination.command.spawn")
-        .build("", plugin),
+        .permission("moomincore.command.spawn")
+        .build(plugin),
       Commands.literal("spawn")
         .then(Commands.literal("teleport")
-          .requires(PermissionTest.test(commodore, "moomination.command.spawn.teleport"))
+          .requires(PermissionTest.test(commodore, "moomincore.command.spawn.teleport"))
           .executes(ctx -> respawn(commodore.getBukkitSender(ctx.getSource()), Commands.playerOrException(commodore.getBukkitSender(ctx.getSource()))))
           .then(Commands.argument("player", ArgumentTypes.player())
+            .requires(PermissionTest.test(commodore, "moomincore.command.spawn.teleport.other"))
             .executes(ctx -> respawn(commodore.getBukkitSender(ctx.getSource()), ArgumentTypes.player(ctx, "player")))
           )
         )

@@ -1,11 +1,11 @@
 package com.github.moomination.moomincore.commands;
 
-import com.github.moomination.moomincore.Waypoint;
 import com.github.moomination.moomincore.command.ArgumentTypes;
 import com.github.moomination.moomincore.command.Commands;
 import com.github.moomination.moomincore.command.PermissionTest;
 import com.github.moomination.moomincore.command.PluginCommands;
 import com.github.moomination.moomincore.config.Configs;
+import com.github.moomination.moomincore.config.waypoint.Waypoint;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
@@ -28,24 +28,26 @@ import java.util.stream.Collectors;
 public class WaypointCommand {
 
   public static void register(Commodore commodore, Plugin plugin) {
-    commodore.register(
+    Commands.register(
+      commodore,
       PluginCommands.builder()
         .name("waypoint")
+        .aliases("waypoints", "wp")
         .description("Server-side waypoint")
-        .permission("moomination.command.waypoint")
-        .build("", plugin),
+        .permission("moomincore.command.waypoint")
+        .build(plugin),
       Commands.literal("waypoint")
-        .requires(PermissionTest.test(commodore, "moomination.command.waypoint"))
+        .requires(PermissionTest.test(commodore, "moomincore.command.waypoint"))
         .then(Commands.literal("list")
-          .requires(PermissionTest.test(commodore, "moomination.command.waypoint.list"))
+          .requires(PermissionTest.test(commodore, "moomincore.command.waypoint.list"))
           .executes(ctx -> list(commodore.getBukkitSender(ctx.getSource()), false))
         )
         .then(Commands.literal("add")
-          .requires(PermissionTest.test(commodore, "moomination.command.waypoint.add"))
+          .requires(PermissionTest.test(commodore, "moomincore.command.waypoint.add"))
           .then(Commands.argument("name", StringArgumentType.string())
             .executes(ctx -> add(commodore.getBukkitSender(ctx.getSource()), ctx.getArgument("name", String.class)))
             .then(Commands.argument("position", ArgumentTypes.vec3())
-              .requires(PermissionTest.test(commodore, "moomination.command.waypoint.add.positioned"))
+              .requires(PermissionTest.test(commodore, "moomincore.command.waypoint.add.positioned"))
               .executes(ctx -> add(commodore.getBukkitSender(ctx.getSource()), ctx.getArgument("name", String.class), ArgumentTypes.vec3(ctx, "position")))
               .then(Commands.argument("world", ArgumentTypes.dimension())
                 .executes(ctx -> addPositioned(commodore.getBukkitSender(ctx.getSource()), ctx.getArgument("name", String.class),
@@ -55,7 +57,7 @@ public class WaypointCommand {
           )
         )
         .then(Commands.literal("remove")
-          .requires(PermissionTest.test(commodore, "moomination.command.waypoint.remove"))
+          .requires(PermissionTest.test(commodore, "moomincore.command.waypoint.remove"))
           .then(Commands.argument("name", StringArgumentType.string())
             .executes(ctx -> remove(commodore.getBukkitSender(ctx.getSource()), ctx.getArgument("name", String.class)))
           )
@@ -78,7 +80,7 @@ public class WaypointCommand {
           w.x(), w.y(), w.z(),
           w.name().replace("\\", "\\\\"),
           w.world().replace("\\", "\\\\"),
-          w.playerName().replace("\\", "\\\\")
+          w.player().replace("\\", "\\\\")
         ))
         .collect(Collectors.joining(","));
       json += "]}";
@@ -96,7 +98,7 @@ public class WaypointCommand {
             ChatColor.GRAY + ", " +
             ChatColor.WHITE + waypoint.z() +
             ChatColor.DARK_GRAY +
-            " (" + waypoint.playerName() + ")",
+            " (" + waypoint.player() + ")",
           waypoint
         )));
     }
@@ -125,9 +127,18 @@ public class WaypointCommand {
 
   public static int remove(CommandSender sender, String name) throws CommandSyntaxException {
     Waypoint waypoint;
-    if ((waypoint = Configs.waypointsConfig().waypoints.remove(name)) == null) {
-      throw new SimpleCommandExceptionType(() -> "\"" + name + "\" is not found").create();
+
+
+    if ((waypoint = Configs.waypointsConfig().waypoints.get(name)) == null) {
+      throw new SimpleCommandExceptionType(() -> "Waypoint \"" + name + "\" is not found").create();
     }
+
+    if (!sender.hasPermission("moomincore.command.waypoint.remove.other")
+      && sender.getName().equals(waypoint.player())) {
+      throw new SimpleCommandExceptionType(() -> "Waypoint \"" + name + "\" is not yours").create();
+    }
+
+    Configs.waypointsConfig().waypoints.remove(name, waypoint);
     Configs.waypointsConfig().save();
     sender.sendMessage(locationComponent(ChatColor.GREEN + "\"" + name + "\" has been removed", waypoint));
     return 1;
@@ -151,7 +162,7 @@ public class WaypointCommand {
           .append(Component.text(waypoint.z(), TextColor.color(255, 255, 0)))
           .append(Component.newline())
           .append(Component.text("Registered by: ", TextColor.color(0, 255, 0)))
-          .append(Component.text(waypoint.playerName(), TextColor.color(255, 255, 0)))
+          .append(Component.text(waypoint.player(), TextColor.color(255, 255, 0)))
           .append(Component.newline())
           .append(Component.newline())
           .append(Component.text("Click to copy location..."))
