@@ -4,8 +4,7 @@ import com.github.moomination.moomincore.commands.*;
 import com.github.moomination.moomincore.config.Configs;
 import com.github.moomination.moomincore.listeners.BossDamageListener;
 import com.github.moomination.moomincore.listeners.ChatListener;
-import com.github.moomination.moomincore.listeners.PlayerDeathListener;
-import com.github.moomination.moomincore.listeners.PlayerInteractListener;
+import com.github.moomination.moomincore.listeners.PlayerListener;
 import me.lucko.commodore.Commodore;
 import me.lucko.commodore.CommodoreProvider;
 import org.bukkit.plugin.PluginManager;
@@ -53,8 +52,7 @@ public final class MoominCore extends JavaPlugin {
 
     getLogger().info("Initializing events...");
     pluginManager.registerEvents(new ChatListener(), this);
-    pluginManager.registerEvents(new PlayerDeathListener(), this);
-    pluginManager.registerEvents(new PlayerInteractListener(), this);
+    pluginManager.registerEvents(new PlayerListener(), this);
     pluginManager.registerEvents(new BossDamageListener(), this);
 
     Instant end = Instant.now();

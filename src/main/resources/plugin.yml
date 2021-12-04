@@ -44,7 +44,7 @@ permissions:
     default: true
   moomincore.command.waypoint.add.positioned:
     default: op
-  moomincore.command.remove:
+  moomincore.command.waypoint.remove:
     default: true
-  moomincore.command.remove.other:
+  moomincore.command.waypoint.remove.other:
     default: op

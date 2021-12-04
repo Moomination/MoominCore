@@ -1,5 +1,6 @@
 package com.github.moomination.moomincore.commands;
 
+import com.github.moomination.moomincore.MoominCore;
 import com.github.moomination.moomincore.command.ArgumentTypes;
 import com.github.moomination.moomincore.command.Commands;
 import com.github.moomination.moomincore.command.PermissionTest;
@@ -23,9 +24,15 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 
+import java.util.Collections;
 import java.util.Optional;
+import java.util.Set;
+import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SpawnCommand {
+
+  public static final Set<Player> WAITSET = Collections.newSetFromMap(new WeakHashMap<>());
 
   public static void register(Commodore commodore, Plugin plugin) {
     Commands.register(
@@ -70,6 +77,10 @@ public class SpawnCommand {
   }
 
   private static int respawn(CommandSender sender, Player teleportee) throws CommandSyntaxException {
+    if (WAITSET.contains(teleportee)) {
+      throw new SimpleCommandExceptionType(() -> ChatColor.RED + "You are already teleporting!").create();
+    }
+
     Location spawn = Optional.ofNullable(Configs.spawnConfig().spawn)
       .map(Spawn::toLocation)
       .or(() -> Optional.ofNullable(teleportee.getBedSpawnLocation()))
@@ -77,25 +88,38 @@ public class SpawnCommand {
     MoominSpawnEvent event = new MoominSpawnEvent(sender, teleportee, spawn);
     Bukkit.getPluginManager().callEvent(event);
     if (event.isCancelled()) {
-      throw new SimpleCommandExceptionType(() -> ChatColor.RED + "Teleport is cancelled!").create();
+      throw new SimpleCommandExceptionType(() -> ChatColor.RED + "Teleportation is cancelled!").create();
     }
 
-    sender.sendMessage(ChatColor.GOLD + "Teleporting...");
+    int distance = -1;
+    if (teleportee.getLocation().getWorld() == spawn.getWorld()) {
+      distance = (int) teleportee.getLocation().distance(spawn);
+    }
+
+    sender.sendMessage(ChatColor.GOLD + "You will be teleported after 5 seconds...");
     if (sender != teleportee) {
       Component by = Component.text(sender.getName());
       if (sender instanceof Player player) {
         by = by.hoverEvent(HoverEvent.showEntity(Key.key("minecraft:player"), player.getUniqueId()));
       }
       teleportee.sendMessage(Component.text(ChatColor.GOLD + "You are teleporting by ").append(by).append(Component.text("...")));
+      teleportee.teleport(spawn, PlayerTeleportEvent.TeleportCause.COMMAND);
+      return distance;
     }
 
-    int distance;
-    if (teleportee.getLocation().getWorld() == spawn.getWorld()) {
-      distance = (int) teleportee.getLocation().distance(spawn);
-    } else {
-      distance = 0;
-    }
-    teleportee.teleport(spawn, PlayerTeleportEvent.TeleportCause.COMMAND);
+    WAITSET.add(teleportee);
+    AtomicInteger count = new AtomicInteger(5);
+    Bukkit.getScheduler().runTaskTimer(MoominCore.getInstance(),
+      cancellable -> {
+        if (!WAITSET.contains(teleportee)) {
+          cancellable.cancel();
+          return;
+        }
+        if (count.decrementAndGet() == 0) {
+          WAITSET.remove(teleportee);
+          teleportee.teleport(spawn, PlayerTeleportEvent.TeleportCause.COMMAND);
+        }
+      }, 0, 20);
     return distance;
   }
 
