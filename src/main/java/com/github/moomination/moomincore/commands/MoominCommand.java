@@ -9,6 +9,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import me.lucko.commodore.Commodore;
+import net.kyori.adventure.text.Component;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -31,7 +32,12 @@ public class MoominCommand {
         .then(Commands.literal("config")
           .then(Commands.literal("flush")
             .executes(PermissionTest.test(commodore, "moomincore.command.moomin",
-              ctx -> flush(commodore.getBukkitSender(ctx.getSource()))
+              ctx -> saveConfig(commodore.getBukkitSender(ctx.getSource()))
+            ))
+          )
+          .then(Commands.literal("forcereload")
+            .executes(PermissionTest.test(commodore, "moomincore.command.moomin",
+              ctx -> loadConfig(commodore.getBukkitSender(ctx.getSource()))
             ))
           )
         )
@@ -42,13 +48,44 @@ public class MoominCommand {
             ))
           )
         )
+        .then(Commands.literal("reload")
+          .then(Commands.argument("plugin", StringArgumentType.string())
+            .executes(PermissionTest.test(commodore, "moomincore.command.moomin",
+              ctx -> reload(commodore.getBukkitSender(ctx.getSource()), StringArgumentType.getString(ctx, "plugin"))
+            ))
+          )
+        )
+        .then(Commands.literal("pvp")
+          .then(Commands.literal("on")
+            .executes(PermissionTest.test(commodore, "moomincore.command.moomin",
+              ctx -> pvp(commodore.getBukkitSender(ctx.getSource()), true)
+            ))
+          )
+          .then(Commands.literal("off")
+            .executes(PermissionTest.test(commodore, "moomincore.command.moomin",
+              ctx -> pvp(commodore.getBukkitSender(ctx.getSource()), false)
+            ))
+          )
+        )
     );
   }
 
-  private static int flush(CommandSender sender) throws CommandSyntaxException {
+  private static int saveConfig(CommandSender sender) throws CommandSyntaxException {
     try {
       long start = System.currentTimeMillis();
       Configs.save(MoominCore.getInstance());
+      long end = System.currentTimeMillis();
+      sender.sendMessage(ChatColor.GREEN + "Took " + (end - start) + " millis");
+      return (int) (end - start);
+    } catch (IOException exception) {
+      throw new SimpleCommandExceptionType(() -> ExceptionUtils.getStackTrace(exception)).create();
+    }
+  }
+
+  private static int loadConfig(CommandSender sender) throws CommandSyntaxException {
+    try {
+      long start = System.currentTimeMillis();
+      Configs.load(MoominCore.getInstance());
       long end = System.currentTimeMillis();
       sender.sendMessage(ChatColor.GREEN + "Took " + (end - start) + " millis");
       return (int) (end - start);
@@ -66,6 +103,24 @@ public class MoominCommand {
       return 1;
     }
     throw new SimpleCommandExceptionType(() -> "Plugin '" + pluginName + "' is not installed!").create();
+  }
+
+  private static int reload(CommandSender sender, String pluginName) throws CommandSyntaxException {
+    PluginManager pluginManager = Bukkit.getPluginManager();
+    Plugin plugin = pluginManager.getPlugin(pluginName);
+    if (plugin != null) {
+      pluginManager.disablePlugin(plugin);
+      pluginManager.enablePlugin(plugin);
+      sender.sendMessage(ChatColor.GREEN + "Plugin '%s' is reloaded!".formatted(plugin.getName()));
+      return 1;
+    }
+    throw new SimpleCommandExceptionType(() -> "Plugin '" + pluginName + "' is not installed!").create();
+  }
+
+  private static int pvp(CommandSender sender, boolean enabled) throws CommandSyntaxException {
+    Bukkit.getWorlds().forEach(world -> world.setPVP(enabled));
+    Bukkit.broadcast(Component.text(ChatColor.YELLOW + "PvP has been " + (enabled ? ChatColor.GREEN + "enabled" : ChatColor.RED + "disabled")));
+    return enabled ? 1 : 0;
   }
 
 }

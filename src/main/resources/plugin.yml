@@ -48,3 +48,9 @@ permissions:
     default: true
   moomincore.command.waypoint.remove.other:
     default: op
+  moomincore.command.faction.join:
+    default: true
+  moomincore.command.faction.leave:
+    default: true
+  moomincore.command.faction.list:
+    default: true

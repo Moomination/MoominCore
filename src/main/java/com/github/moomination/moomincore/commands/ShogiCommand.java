@@ -1,5 +1,6 @@
 package com.github.moomination.moomincore.commands;
 
+import com.github.moomination.moomincore.command.ArgumentTypes;
 import com.github.moomination.moomincore.command.Commands;
 import com.github.moomination.moomincore.command.PluginCommands;
 import me.lucko.commodore.Commodore;
@@ -18,6 +19,10 @@ public class ShogiCommand {
         .build(plugin),
       Commands.literal("shogi").executes(
         ctx -> shogi(commodore.getBukkitSender(ctx.getSource()))
+      ).then(
+        Commands.argument("player", ArgumentTypes.player()).executes(
+          ctx -> shogi(ArgumentTypes.player(ctx, "player"))
+        )
       )
     );
   }

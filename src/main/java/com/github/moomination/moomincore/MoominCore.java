@@ -43,6 +43,7 @@ public final class MoominCore extends JavaPlugin {
 
     getLogger().info("Initializing commands...");
     commodore = CommodoreProvider.getCommodore(this);
+    FactionCommand.register(commodore, this);
     MemoryCommand.register(commodore, this);
     MoominCommand.register(commodore, this);
     PingCommand.register(commodore, this);

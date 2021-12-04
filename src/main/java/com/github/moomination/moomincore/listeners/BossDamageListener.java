@@ -22,7 +22,7 @@ public class BossDamageListener implements Listener {
   private static final String KEY_DAMAGES = "damages";
 
   @EventHandler
-  public void onBossDamagedByEntity(EntityDamageByEntityEvent event) {
+  public static void onBossDamagedByEntity(EntityDamageByEntityEvent event) {
     if (event.getEntityType() != EntityType.WITHER && event.getEntityType() != EntityType.ENDER_DRAGON) {
       return;
     }
@@ -65,7 +65,7 @@ public class BossDamageListener implements Listener {
   }
 
   @EventHandler
-  public void onBossSlain(EntityDeathEvent event) {
+  public static void onBossSlain(EntityDeathEvent event) {
     if (event.getEntityType() != EntityType.WITHER && event.getEntityType() != EntityType.ENDER_DRAGON) return;
     if (!event.getEntity().hasMetadata(KEY_DAMAGES)) return;
     Entity victim = event.getEntity();

@@ -12,6 +12,7 @@ import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -19,9 +20,8 @@ import org.bukkit.inventory.ItemStack;
 
 public class PlayerListener implements Listener {
 
-
   @EventHandler
-  public void onDeath(PlayerDeathEvent event) {
+  public static void onDeath(PlayerDeathEvent event) {
     Player player = event.getEntity();
     Location location = player.getLocation();
     int killCount = player.getStatistic(Statistic.PLAYER_KILLS);
@@ -54,7 +54,7 @@ public class PlayerListener implements Listener {
   }
 
   @EventHandler(ignoreCancelled = true)
-  public void onRightClick(PlayerInteractEvent event) {
+  public static void onRightClick(PlayerInteractEvent event) {
     if (!event.getAction().isRightClick())
       return;
     Player player = event.getPlayer();
@@ -73,11 +73,9 @@ public class PlayerListener implements Listener {
     if (item != null && item.getType().isRecord() && clickedBlock.getType() == Material.JUKEBOX) {
       Location loc = player.getLocation();
       Bukkit.broadcast(Component.text(
-        (player.getUniqueId().toString().replace("-", "").equals("f5ae87af5139453888500d5938529e18")
-          ? "" : "たぶん") +
-          "VIPTEACHERがレコードを再生しようとしています！場所: %d, %d, %d".formatted(
-            loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()),
-        TextColor.color(255, 90, 90)).hoverEvent(
+        player.getName() + " がレコードを再生しようとしています！場所: %d, %d, %d".formatted(
+          loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()),
+        TextColor.color(255, 120, 120)).hoverEvent(
         HoverEvent.showEntity(HoverEvent.ShowEntity.of(Key.key("minecraft:player"), player.getUniqueId()))));
       event.setCancelled(true);
       return;
@@ -112,6 +110,15 @@ public class PlayerListener implements Listener {
     Player player = event.getPlayer();
     if (event.hasChangedPosition() && SpawnCommand.WAITSET.remove(player)) {
       player.sendMessage(ChatColor.RED + "Your teleportation has been cancelled");
+    }
+  }
+
+  @EventHandler
+  public static void onPlayerDamaged(EntityDamageEvent event) {
+    if (event.getEntity() instanceof Player player) {
+      if (SpawnCommand.WAITSET.remove(player)) {
+        player.sendMessage(ChatColor.RED + "Your teleportation has been cancelled");
+      }
     }
   }
 

@@ -1,20 +1,30 @@
 package com.github.moomination.moomincore.listeners;
 
-import org.bukkit.ChatColor;
+import com.github.moomination.moomincore.config.Configs;
+import io.papermc.paper.chat.ChatRenderer;
+import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 public class ChatListener implements Listener {
 
   @EventHandler
-  public void onChat(AsyncPlayerChatEvent event) {
-    //    String uuid = event.getPlayer().getUniqueId().toString().replaceAll("-", "");
-    //    if (MoominCore.getPrefixes().containsKey(uuid)) {
-    //      event.setFormat(ChatColor.RED + "[" + MoominCore.getPrefixes().get(uuid) + "]" + ChatColor.WHITE + "%s: %s");
-    //    } else {
-    event.setFormat(ChatColor.RED + "[-]" + ChatColor.WHITE + "%s: %s");
-    //    }
+  public static void onChat(AsyncChatEvent event) {
+    String uuid = event.getPlayer().getUniqueId().toString().replace("-", "");
+    String prefix = Configs.prefixConfig().prefixes.getOrDefault(uuid, "-");
+    // ChatColor.RED + "[" + prefix + "]" + ChatColor.WHITE + "%s: %s"
+    event.renderer(ChatRenderer.viewerUnaware((source, sourceDisplayName, message) ->
+      Component.text()
+        .append(Component.text("[", NamedTextColor.GOLD))
+        .append(Component.text(prefix, NamedTextColor.RED))
+        .append(Component.text("]", NamedTextColor.GOLD))
+        .append(sourceDisplayName.color(NamedTextColor.WHITE))
+        .append(Component.text(": ", NamedTextColor.WHITE))
+        .append(message.color(NamedTextColor.WHITE))
+        .build()
+    ));
   }
 
 }

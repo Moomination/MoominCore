@@ -14,7 +14,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -92,16 +92,19 @@ public class WaypointCommand {
       sender.sendMessage(ChatColor.YELLOW + "====" + ChatColor.WHITE + "Saved Coordinates" + ChatColor.YELLOW + "===========");
       waypoints.values()
         .forEach(waypoint -> sender.sendMessage(locationComponent(
-          ChatColor.AQUA + "Name: " +
-            ChatColor.WHITE + waypoint.name() +
-            ChatColor.AQUA + " Pos: " +
-            ChatColor.WHITE + waypoint.x() +
-            ChatColor.GRAY + ", " +
-            ChatColor.WHITE + waypoint.y() +
-            ChatColor.GRAY + ", " +
-            ChatColor.WHITE + waypoint.z() +
-            ChatColor.DARK_GRAY +
-            " (" + waypoint.player() + ")",
+          Component.text()
+            .append(Component.text("Name: ", NamedTextColor.AQUA))
+            .append(Component.text(waypoint.name(), NamedTextColor.WHITE))
+            .append(Component.text(" Pos: ", NamedTextColor.AQUA))
+            .append(Component.text(waypoint.x(), NamedTextColor.GRAY))
+            .append(Component.text(", ", NamedTextColor.DARK_GRAY))
+            .append(Component.text(waypoint.y(), NamedTextColor.GRAY))
+            .append(Component.text(", ", NamedTextColor.DARK_GRAY))
+            .append(Component.text(waypoint.z(), NamedTextColor.GRAY))
+            .append(Component.text(" (", NamedTextColor.DARK_GRAY))
+            .append(Component.text(waypoint.player(), NamedTextColor.GRAY))
+            .append(Component.text(")", NamedTextColor.DARK_GRAY))
+            .build(),
           waypoint
         )));
     }
@@ -124,7 +127,7 @@ public class WaypointCommand {
     Waypoint waypoint = new Waypoint(world.getName(), position.getBlockX(), position.getBlockY(), position.getBlockZ(), name, sender.getName());
     Configs.waypointsConfig().waypoints.put(name, waypoint);
     Configs.waypointsConfig().save();
-    sender.sendMessage(locationComponent(ChatColor.GREEN + "Saved as '" + name + "'", waypoint));
+    sender.sendMessage(locationComponent(Component.text("Saved as '" + name + "'", NamedTextColor.GREEN), waypoint));
     return 1;
   }
 
@@ -143,34 +146,31 @@ public class WaypointCommand {
 
     Configs.waypointsConfig().waypoints.remove(name, waypoint);
     Configs.waypointsConfig().save();
-    sender.sendMessage(locationComponent(ChatColor.GREEN + "\"" + name + "\" has been removed", waypoint));
+    sender.sendMessage(locationComponent(Component.text("\"" + name + "\" has been removed", NamedTextColor.GREEN), waypoint));
     return 1;
   }
 
-  private static ComponentLike locationComponent(String message, Waypoint waypoint) {
-    return Component.text(message)
-      .hoverEvent(HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT,
-        Component.text(waypoint.name())
-          .append(Component.newline())
-          .append(Component.text("World: ", TextColor.color(0, 255, 0)))
-          .append(Component.text(waypoint.world(), TextColor.color(255, 255, 0)))
-          .append(Component.newline())
-          .append(Component.text("X: ", TextColor.color(0, 255, 0)))
-          .append(Component.text(waypoint.x(), TextColor.color(255, 255, 0)))
-          .append(Component.newline())
-          .append(Component.text("Y: ", TextColor.color(0, 255, 0)))
-          .append(Component.text(waypoint.y(), TextColor.color(255, 255, 0)))
-          .append(Component.newline())
-          .append(Component.text("Z: ", TextColor.color(0, 255, 0)))
-          .append(Component.text(waypoint.z(), TextColor.color(255, 255, 0)))
-          .append(Component.newline())
-          .append(Component.text("Registered by: ", TextColor.color(0, 255, 0)))
-          .append(Component.text(waypoint.player(), TextColor.color(255, 255, 0)))
-          .append(Component.newline())
-          .append(Component.newline())
-          .append(Component.text("Click to copy location..."))
-      ))
-      .clickEvent(ClickEvent.copyToClipboard(String.format("%d, %d, %d in %s", waypoint.x(), waypoint.y(), waypoint.z(), waypoint.world())));
+  private static ComponentLike locationComponent(Component message, Waypoint waypoint) {
+    return message.hoverEvent(HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT,
+      Component.text(waypoint.name())
+        .append(Component.newline())
+        .append(Component.text("World: ", NamedTextColor.GREEN))
+        .append(Component.text(waypoint.world(), NamedTextColor.WHITE))
+        .append(Component.newline())
+        .append(Component.text("X: ", NamedTextColor.GREEN))
+        .append(Component.text("" + waypoint.x(), NamedTextColor.WHITE))
+        .append(Component.newline())
+        .append(Component.text("Y: ", NamedTextColor.GREEN))
+        .append(Component.text("" + waypoint.y(), NamedTextColor.WHITE))
+        .append(Component.newline())
+        .append(Component.text("Z: ", NamedTextColor.GREEN))
+        .append(Component.text("" + waypoint.z(), NamedTextColor.WHITE))
+        .append(Component.newline())
+        .append(Component.text("Registered by: ", NamedTextColor.GREEN))
+        .append(Component.text(waypoint.player(), NamedTextColor.WHITE))
+        .append(Component.newline())
+        .append(Component.text("Click to copy coordinates..."))
+    )).clickEvent(ClickEvent.suggestCommand(String.format("Waypoint '%s' [%d, %d, %d] in '%s'", waypoint.name(), waypoint.x(), waypoint.y(), waypoint.z(), waypoint.world())));
   }
 
 }

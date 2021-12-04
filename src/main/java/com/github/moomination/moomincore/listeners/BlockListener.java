@@ -13,7 +13,7 @@ public class BlockListener implements Listener {
   public static void onPlantBreak(BlockBreakEvent event) {
     Block block = event.getBlock();
     Block plant = block.getRelative(BlockFace.UP);
-    if (!plant.isEmpty() && block.getType() == Material.FARMLAND) {
+    if ((block.getType() == Material.FARMLAND && !plant.isEmpty())) {
       event.setCancelled(true);
     }
   }

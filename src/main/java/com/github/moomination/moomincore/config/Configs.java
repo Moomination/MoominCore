@@ -1,5 +1,6 @@
 package com.github.moomination.moomincore.config;
 
+import com.github.moomination.moomincore.config.prefix.PrefixConfig;
 import com.github.moomination.moomincore.config.spawn.SpawnConfig;
 import com.github.moomination.moomincore.config.waypoint.WaypointsConfig;
 import org.bukkit.plugin.Plugin;
@@ -34,6 +35,7 @@ public final class Configs {
 
   private static SpawnConfig spawnConfig;
   private static WaypointsConfig waypointsConfig;
+  private static PrefixConfig prefixConfig;
 
   public static SpawnConfig spawnConfig() {
     return spawnConfig;
@@ -43,21 +45,28 @@ public final class Configs {
     return waypointsConfig;
   }
 
+  public static PrefixConfig prefixConfig() {
+    return prefixConfig;
+  }
+
   public static void load(Plugin plugin) throws IOException {
     File dataDir = plugin.getDataFolder();
     spawnConfig = SpawnConfig.deserialize(load(dataDir, "spawn"));
     waypointsConfig = WaypointsConfig.deserialize(load(dataDir, "waypoints"));
+    prefixConfig = PrefixConfig.deserialize(load(dataDir, "prefix"));
   }
 
   public static void save(Plugin plugin) throws IOException {
     File dataDir = plugin.getDataFolder();
     save(dataDir, spawnConfig);
     save(dataDir, waypointsConfig);
+    save(dataDir, prefixConfig);
   }
 
   public static void free() {
     spawnConfig = null;
     waypointsConfig = null;
+    prefixConfig = null;
   }
 
   @SuppressWarnings("unchecked")
