@@ -18,6 +18,7 @@ public class PlayerDeathListener implements Listener {
     Player player = event.getEntity();
     Location location = player.getLocation();
     int killCount = player.getStatistic(Statistic.PLAYER_KILLS);
+    int deaths = player.getStatistic(Statistic.DEATHS) + 1;
     String deathMessage = "";
     String cause = ChatColor.stripColor(event.getDeathMessage().replace(player.getName(), "").trim());
     if (player.getKiller() != null && cause.contains(player.getKiller().getDisplayName())) {
@@ -39,7 +40,8 @@ public class PlayerDeathListener implements Listener {
         deathMessage = deathMessage + ChatColor.YELLOW + " using " + ChatColor.RED + weaponName + ChatColor.YELLOW;
       }
     }
-    deathMessage = ChatColor.RED + player.getDisplayName() + ChatColor.DARK_RED + "[" + killCount + "] " + ChatColor.YELLOW + cause + deathMessage;
+//    deathMessage = ChatColor.RED + player.getDisplayName() + ChatColor.DARK_RED + "[" + killCount + "] " + ChatColor.YELLOW + cause + deathMessage;
+    deathMessage = ChatColor.RED + player.getDisplayName() + ChatColor.DARK_RED + "[" + deaths + "] " + ChatColor.YELLOW + cause + deathMessage;
     event.setDeathMessage(deathMessage + ".");
     String finalDeathMessage = deathMessage;
     location.getWorld().strikeLightningEffect(location);

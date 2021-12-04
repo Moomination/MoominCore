@@ -88,7 +88,13 @@ public class SpawnCommand {
       }
       teleportee.sendMessage(Component.text(ChatColor.GOLD + "You are teleporting by ").append(by).append(Component.text("...")));
     }
-    int distance = (int) teleportee.getLocation().distance(spawn);
+
+    int distance;
+    if (teleportee.getLocation().getWorld() == spawn.getWorld()) {
+      distance = (int) teleportee.getLocation().distance(spawn);
+    } else {
+      distance = 0;
+    }
     teleportee.teleport(spawn, PlayerTeleportEvent.TeleportCause.COMMAND);
     return distance;
   }
