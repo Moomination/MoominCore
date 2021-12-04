@@ -1,9 +1,8 @@
 package com.github.moomination.moomincore.listeners;
 
 import com.github.moomination.moomincore.commands.SpawnCommand;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.*;
@@ -17,6 +16,8 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.concurrent.ThreadLocalRandom;
 
 public class PlayerListener implements Listener {
 
@@ -51,6 +52,10 @@ public class PlayerListener implements Listener {
     event.setDeathMessage(deathMessage + ".");
     String finalDeathMessage = deathMessage;
     location.getWorld().strikeLightningEffect(location);
+    player.sendMessage(Component.text(
+      "✙You died in %d, %d, %d".formatted(location.getBlockX(), location.getBlockY(), location.getBlockZ()),
+      NamedTextColor.GOLD
+    ));
   }
 
   @EventHandler(ignoreCancelled = true)
@@ -65,7 +70,9 @@ public class PlayerListener implements Listener {
     }
 
     if (clickedBlock.getType() == Material.BELL) {
-      player.sendMessage(Component.text("ベルたたくな"));
+      int base = 0xFEFEFE;
+      player.sendMessage(Component.text("ベルたたくな",
+        TextColor.color(ThreadLocalRandom.current().nextInt(0xFFFFFF - base) + base)));
       event.setCancelled(true);
       return;
     }
@@ -75,8 +82,7 @@ public class PlayerListener implements Listener {
       Bukkit.broadcast(Component.text(
         player.getName() + " がレコードを再生しようとしています！場所: %d, %d, %d".formatted(
           loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()),
-        TextColor.color(255, 120, 120)).hoverEvent(
-        HoverEvent.showEntity(HoverEvent.ShowEntity.of(Key.key("minecraft:player"), player.getUniqueId()))));
+        TextColor.color(255, 90, 90)));
       event.setCancelled(true);
       return;
     }
@@ -108,7 +114,7 @@ public class PlayerListener implements Listener {
   @EventHandler
   public static void onPlayerMoved(PlayerMoveEvent event) {
     Player player = event.getPlayer();
-    if (event.hasChangedPosition() && SpawnCommand.WAITSET.remove(player)) {
+    if (event.hasChangedBlock() && SpawnCommand.WAITSET.remove(player)) {
       player.sendMessage(ChatColor.RED + "Your teleportation has been cancelled");
     }
   }
