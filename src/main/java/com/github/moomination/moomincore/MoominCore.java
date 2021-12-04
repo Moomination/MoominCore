@@ -42,50 +42,6 @@ public final class MoominCore extends JavaPlugin {
 
     getLogger().info("Initializing permissions...");
     PluginManager pluginManager = getServer().getPluginManager();
-    Permission.loadPermission("moomincore.command", Map.of(
-      "default", "true",
-      "children", Map.of(
-        "moomincore.command.memory", Map.of("default", "op"),
-        "moomincore.command.moomin", Map.of("default", "op"),
-        "moomincore.command.ping", Map.of(
-          "default", "true",
-          "children", Map.of(
-            "moomincore.command.ping.other", Map.of("default", "op")
-          )
-        ),
-        "moomincore.command.spawn", Map.of(
-          "default", "op",
-          "children", Map.of(
-            "moomincore.command.spawn.teleport", Map.of(
-              "default", "op",
-              "children", Map.of(
-                "moomincore.command.spawn.teleport.other", Map.of("default", "op")
-              ),
-              "moomincore.command.spawn.set", Map.of("default", "op")
-            )
-          )
-        ),
-        "moomincore.command.shogi", Map.of("default", "true"),
-        "moomincore.command.waypoint", Map.of(
-          "default", "true",
-          "children", Map.of(
-            "moomincore.command.waypoint.list", Map.of("default", true),
-            "moomincore.command.waypoint.add", Map.of(
-              "default", true,
-              "children", Map.of(
-                "moomincore.command.waypoint.add.positioned", Map.of("default", "op")
-              )
-            ),
-            "moomincore.command.waypoint.remove", Map.of(
-              "default", true,
-              "children", Map.of(
-                "moomincore.command.waypoint.remove.other", Map.of("default", "op")
-              )
-            )
-          )
-        )
-      )
-    ));
 
     getLogger().info("Initializing commands...");
     commodore = CommodoreProvider.getCommodore(this);
