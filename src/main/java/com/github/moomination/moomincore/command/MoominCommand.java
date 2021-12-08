@@ -7,20 +7,25 @@ import com.github.moomination.moomincore.internal.commander.ArgumentTypes;
 import com.github.moomination.moomincore.internal.commander.Commands;
 import com.github.moomination.moomincore.internal.commander.PermissionTest;
 import com.github.moomination.moomincore.internal.commander.PluginCommands;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import me.lucko.commodore.Commodore;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.advancement.Advancement;
+import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 
 import java.io.IOException;
+import java.util.Iterator;
 
 public class MoominCommand {
 
@@ -64,6 +69,16 @@ public class MoominCommand {
               .executes(PermissionTest.test(commodore, "moomincore.command.moomin",
                 ctx -> countAdvancements(commodore.getBukkitSender(ctx.getSource()), ArgumentTypes.player(ctx, "player"))
               ))
+            )
+          )
+          .then(Commands.literal("grant")
+            .then(Commands.argument("player", ArgumentTypes.player())
+              .then(Commands.argument("count", IntegerArgumentType.integer())
+                .executes(PermissionTest.test(commodore, "moomincore.command.moomin",
+                  ctx -> grantAdvancements(commodore.getBukkitSender(ctx.getSource()), ArgumentTypes.player(ctx, "player"),
+                    IntegerArgumentType.getInteger(ctx, "count"))
+                ))
+              )
             )
           )
           .then(Commands.literal("reload")
@@ -136,8 +151,29 @@ public class MoominCommand {
 
   private static int countAdvancements(CommandSender sender, Player player) throws CommandSyntaxException {
     int count = AdvancementTracker.getCount(player);
-    sender.sendMessage(AdvancementTracker.colorize(player, player.displayName(), AdvancementTracker.getCount(player))
-      .append(Component.text("'s Advancements: " + count))
+    sender.sendMessage(player.displayName()
+      .append(Component.text("'s Advancements: " + count
+        + "/%d (%.2f%%)".formatted(AdvancementTracker.numberOfAdvancements(),
+        (float) count / AdvancementTracker.numberOfAdvancements() * 100), NamedTextColor.WHITE))
+    );
+    return count;
+  }
+
+  private static int grantAdvancements(CommandSender sender, Player player, int count) throws CommandSyntaxException {
+    Iterator<Advancement> advancementIterator = Bukkit.advancementIterator();
+    while (advancementIterator.hasNext() && count > 0) {
+      Advancement advancement = advancementIterator.next();
+      AdvancementProgress advancementProgress = player.getAdvancementProgress(advancement);
+      advancementProgress.getRemainingCriteria().forEach(advancementProgress::awardCriteria);
+      --count;
+    }
+    AdvancementTracker.reload();
+    count = AdvancementTracker.getCount(player);
+    sender.sendMessage(player.displayName()
+      .append(Component.text("'s Advancements: %d/%d (%.2f%%)".formatted(
+        count,
+        AdvancementTracker.numberOfAdvancements(),
+        (float) count / AdvancementTracker.numberOfAdvancements() * 100), NamedTextColor.WHITE))
     );
     return count;
   }

@@ -43,10 +43,7 @@ public class AdvancementTracker {
       });
     }
     numberOfAdvancements = all;
-
-    Bukkit.getScheduler().runTask(MoominCore.getInstance(), () ->
-      players.forEach(player -> setCount(player, completed.getOrDefault(player, 0)))
-    );
+    players.forEach(player -> setCount(player, completed.getOrDefault(player, 0)));
   }
 
   public static int numberOfAdvancements() {
@@ -63,7 +60,9 @@ public class AdvancementTracker {
   public static void setCount(Player player, int count) {
     MetadataValue value = new IntMetadataValue(MoominCore.getInstance(), count);
     player.setMetadata(METADATA_KEY, value);
-    player.displayName(colorize(player, player.displayName(), count));
+    Component name = colorize(player, player.name(), count);
+    player.displayName(name);
+    player.playerListName(name);
   }
 
   public static void addCount(Player player, int count) {
@@ -71,7 +70,9 @@ public class AdvancementTracker {
       count += player.getMetadata(METADATA_KEY).get(0).asInt();
     }
     player.setMetadata(METADATA_KEY, new IntMetadataValue(MoominCore.getInstance(), count));
-    player.displayName(colorize(player, player.displayName(), count));
+    Component name = colorize(player, player.name(), count);
+    player.displayName(name);
+    player.playerListName(name);
   }
 
   public static Component colorize(Player player, Component component, int count) {
@@ -93,7 +94,6 @@ public class AdvancementTracker {
     if (!(component instanceof TextComponent text)) {
       return component.color(color1);
     }
-
     char[] chars = text.content().toCharArray();
     TextComponent.Builder builder = Component.text();
     for (int i = 0, len = chars.length; i < len; ++i) {
