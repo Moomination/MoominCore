@@ -3,6 +3,7 @@ package com.github.moomination.moomincore.listeners;
 import com.github.moomination.moomincore.AdvancementTracker;
 import com.github.moomination.moomincore.Cooldown;
 import com.github.moomination.moomincore.MoominCore;
+import com.github.moomination.moomincore.Phrase;
 import com.github.moomination.moomincore.command.SpawnCommand;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -141,7 +142,24 @@ public class PlayerListener implements Listener {
 
   @EventHandler
   public static void onPlayerAdvancementDone(PlayerAdvancementDoneEvent event) {
-    Bukkit.getScheduler().runTaskAsynchronously(MoominCore.getInstance(), AdvancementTracker::reload);
+    Player player = event.getPlayer();
+    int count = AdvancementTracker.addCount(player, 1);
+    AdvancementTracker.AdvancementTier prev = AdvancementTracker.tier(count - 1);
+    AdvancementTracker.AdvancementTier next = AdvancementTracker.tier(count);
+    if (prev != AdvancementTracker.AdvancementTier.NONE
+      && next != AdvancementTracker.AdvancementTier.NONE
+      && prev != next) {
+      Bukkit.broadcast(
+        Component.text()
+          .append(Phrase.player(player, player.displayName()))
+          .append(Component.text(" が進捗を達成し、Tier ", NamedTextColor.GOLD))
+          .append(AdvancementTracker.colorize(Component.text(prev.displayName()), prev))
+          .append(Component.text(" から Tier ", NamedTextColor.GOLD))
+          .append(AdvancementTracker.colorize(Component.text(next.displayName()), next))
+          .append(Component.text(" へ昇格しました", NamedTextColor.GOLD))
+          .build()
+      );
+    }
   }
 
 }

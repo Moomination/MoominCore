@@ -2,6 +2,7 @@ package com.github.moomination.moomincore.command;
 
 import com.github.moomination.moomincore.AdvancementTracker;
 import com.github.moomination.moomincore.MoominCore;
+import com.github.moomination.moomincore.Phrase;
 import com.github.moomination.moomincore.config.Configs;
 import com.github.moomination.moomincore.internal.commander.ArgumentTypes;
 import com.github.moomination.moomincore.internal.commander.Commands;
@@ -13,7 +14,11 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import me.lucko.commodore.Commodore;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -73,11 +78,21 @@ public class MoominCommand {
           )
           .then(Commands.literal("grant")
             .then(Commands.argument("player", ArgumentTypes.player())
-              .then(Commands.argument("count", IntegerArgumentType.integer())
-                .executes(PermissionTest.test(commodore, "moomincore.command.moomin",
-                  ctx -> grantAdvancements(commodore.getBukkitSender(ctx.getSource()), ArgumentTypes.player(ctx, "player"),
-                    IntegerArgumentType.getInteger(ctx, "count"))
-                ))
+              .then(Commands.literal("immediate")
+                .then(Commands.argument("count", IntegerArgumentType.integer())
+                  .executes(PermissionTest.test(commodore, "moomincore.command.moomin",
+                    ctx -> grantAdvancements(commodore.getBukkitSender(ctx.getSource()), ArgumentTypes.player(ctx, "player"),
+                      IntegerArgumentType.getInteger(ctx, "count"), false)
+                  ))
+                )
+              )
+              .then(Commands.literal("by")
+                .then(Commands.argument("percentage", IntegerArgumentType.integer())
+                  .executes(PermissionTest.test(commodore, "moomincore.command.moomin",
+                    ctx -> grantAdvancements(commodore.getBukkitSender(ctx.getSource()), ArgumentTypes.player(ctx, "player"),
+                      IntegerArgumentType.getInteger(ctx, "percentage"), true)
+                  ))
+                )
               )
             )
           )
@@ -99,7 +114,49 @@ public class MoominCommand {
             ))
           )
         )
+        .then(Commands.literal("gradation")
+          .then(Commands.argument("color1", StringArgumentType.string())
+            .then(Commands.argument("color2", StringArgumentType.string())
+              .then(Commands.argument("message", StringArgumentType.string())
+                .executes(PermissionTest.test(commodore, "moomincore.command.moomin",
+                  ctx -> gradation(commodore.getBukkitSender(ctx.getSource()),
+                    StringArgumentType.getString(ctx, "color1"),
+                    StringArgumentType.getString(ctx, "color2"),
+                    StringArgumentType.getString(ctx, "message")
+                  )
+                ))
+              )
+            )
+          )
+        )
     );
+  }
+
+  private static TextColor fromSpec(String spec) throws CommandSyntaxException {
+    TextColor color;
+    color = NamedTextColor.NAMES.value(spec);
+    if (color != null) return color;
+    color = TextColor.fromCSSHexString(spec);
+    if (color != null) return color;
+    color = TextColor.fromHexString(spec);
+    if (color != null) return color;
+    throw new SimpleCommandExceptionType(() -> "'" + spec + "' is not valid color!").create();
+  }
+
+  private static int gradation(CommandSender sender, String colorSpec1, String colorSpec2, String message)
+    throws CommandSyntaxException {
+    var m = Phrase.gradation(message, fromSpec(colorSpec1), fromSpec(colorSpec2));
+    var n = LegacyComponentSerializer.legacyAmpersand().serialize(m);
+    sender.sendMessage(Component.text().append(m)
+      .hoverEvent(HoverEvent.showText(
+        Component.text(n)
+          .append(Component.newline())
+          .append(Component.text("Click to copy"))
+      ))
+      .clickEvent(
+        ClickEvent.suggestCommand(n)
+      ));
+    return 0;
   }
 
   private static int saveConfig(CommandSender sender) throws CommandSyntaxException {
@@ -159,7 +216,11 @@ public class MoominCommand {
     return count;
   }
 
-  private static int grantAdvancements(CommandSender sender, Player player, int count) throws CommandSyntaxException {
+  private static int grantAdvancements(CommandSender sender, Player player, int count, boolean percentage) throws CommandSyntaxException {
+    if (percentage) {
+      count = Math.round(AdvancementTracker.numberOfAdvancements() * (count / 100f));
+    }
+
     Iterator<Advancement> advancementIterator = Bukkit.advancementIterator();
     while (advancementIterator.hasNext() && count > 0) {
       Advancement advancement = advancementIterator.next();
