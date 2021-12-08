@@ -33,7 +33,7 @@ public class BossDamageListener implements Listener {
   @EventHandler(priority = EventPriority.MONITOR)
   @SuppressWarnings("unchecked")
   public static void onBossDamagedByEntity(EntityDamageByEntityEvent event) {
-    if (BOSS.contains(event.getEntityType())) {
+    if (!BOSS.contains(event.getEntityType())) {
       return;
     }
     Entity boss = event.getEntity();
@@ -73,7 +73,7 @@ public class BossDamageListener implements Listener {
   @EventHandler
   @SuppressWarnings("unchecked")
   public static void onBossSlain(EntityDeathEvent event) {
-    if (BOSS.contains(event.getEntityType())) {
+    if (!BOSS.contains(event.getEntityType())) {
       return;
     }
     Entity boss = event.getEntity();
