@@ -11,13 +11,14 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
 
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 public class ChatListener implements Listener {
 
@@ -50,10 +51,6 @@ public class ChatListener implements Listener {
   }
 
   @EventHandler
-  public static void onJoinEvent(PlayerJoinEvent event) {
-  }
-
-  @EventHandler
   public static void onChat(AsyncChatEvent event) {
     String uuid = event.getPlayer().getUniqueId().toString().replace("-", "");
     String prefix = Configs.prefixConfig().prefixes.getOrDefault(uuid, "-");
@@ -63,17 +60,22 @@ public class ChatListener implements Listener {
         .append(Component.text("[", NamedTextColor.GOLD))
         .append(Component.text(prefix, NamedTextColor.RED))
         .append(Component.text("]", NamedTextColor.GOLD))
-        .append(sourceDisplayName.color(NamedTextColor.WHITE))
+        .append(Phrase.player(source, sourceDisplayName))
         .append(Component.text(": ", NamedTextColor.WHITE))
         .append(
-          LegacyComponentSerializer.legacyAmpersand().deserialize(
-              LegacyComponentSerializer.legacySection().serialize(message)
+          Stream.of(
+              LegacyComponentSerializer.legacyAmpersand().deserialize(
+                  LegacyComponentSerializer.legacySection().serialize(message)
+                )
+                .replaceText(builder ->
+                  Bukkit.getOnlinePlayers().forEach(player ->
+                    builder.match(player.getName()).replacement(b -> Phrase.player(player, b))
+                  )
+                )
             )
-            .replaceText(builder ->
-              Bukkit.getOnlinePlayers().forEach(player ->
-                builder.match(player.getName()).replacement(b -> Phrase.player(player, b))
-              )
-            )
+            .peek(System.out::println)
+            .peek(x -> System.out.println(GsonComponentSerializer.gson().serialize(x)))
+            .findFirst().get()
         )
         .build()
     ));

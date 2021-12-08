@@ -38,6 +38,9 @@ public final class MoominCore extends JavaPlugin {
       throw new UncheckedIOException(exception);
     }
 
+    getLogger().info("Initializing advancement tracker...");
+    AdvancementTracker.reload();
+
     getLogger().info("Initializing permissions...");
     PluginManager pluginManager = getServer().getPluginManager();
 

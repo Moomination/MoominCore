@@ -1,6 +1,8 @@
 package com.github.moomination.moomincore.listeners;
 
+import com.github.moomination.moomincore.AdvancementTracker;
 import com.github.moomination.moomincore.Cooldown;
+import com.github.moomination.moomincore.MoominCore;
 import com.github.moomination.moomincore.command.SpawnCommand;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -15,7 +17,9 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerAdvancementDoneEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -128,6 +132,16 @@ public class PlayerListener implements Listener {
         player.sendMessage(ChatColor.RED + "Your teleportation has been cancelled");
       }
     }
+  }
+
+  @EventHandler
+  public static void onJoinEvent(PlayerJoinEvent event) {
+    Bukkit.getScheduler().runTaskAsynchronously(MoominCore.getInstance(), AdvancementTracker::reload);
+  }
+
+  @EventHandler
+  public static void onPlayerAdvancementDone(PlayerAdvancementDoneEvent event) {
+    Bukkit.getScheduler().runTaskAsynchronously(MoominCore.getInstance(), AdvancementTracker::reload);
   }
 
 }
