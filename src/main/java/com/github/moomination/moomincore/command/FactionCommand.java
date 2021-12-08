@@ -1,9 +1,9 @@
-package com.github.moomination.moomincore.commands;
+package com.github.moomination.moomincore.command;
 
-import com.github.moomination.moomincore.command.Commands;
-import com.github.moomination.moomincore.command.PermissionTest;
-import com.github.moomination.moomincore.command.PluginCommands;
 import com.github.moomination.moomincore.config.Configs;
+import com.github.moomination.moomincore.internal.commander.Commands;
+import com.github.moomination.moomincore.internal.commander.PermissionTest;
+import com.github.moomination.moomincore.internal.commander.PluginCommands;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
@@ -46,9 +46,14 @@ public class FactionCommand {
           .then(
             Commands.argument("name", StringArgumentType.string())
               .executes(PermissionTest.test(commodore, "moomincore.command.faction.list",
-                ctx -> list(commodore.getBukkitSender(ctx.getSource()), StringArgumentType.getString(ctx, "name"))
+                ctx -> members(commodore.getBukkitSender(ctx.getSource()), StringArgumentType.getString(ctx, "name"))
               ))
           )
+        )
+        .then(Commands.literal("list")
+          .executes(PermissionTest.test(commodore, "moomincore.command.faction.list",
+            ctx -> list(commodore.getBukkitSender(ctx.getSource()))
+          ))
         )
     );
   }
@@ -75,7 +80,7 @@ public class FactionCommand {
     return 1;
   }
 
-  private static int list(CommandSender sender, String faction) throws CommandSyntaxException {
+  private static int members(CommandSender sender, String faction) throws CommandSyntaxException {
     sender.sendMessage("List of '" + faction + "'");
     @NotNull OfflinePlayer[] offlinePlayers = Bukkit.getOfflinePlayers();
     Map<String, OfflinePlayer> uuidToOffline = new HashMap<>(offlinePlayers.length);
@@ -92,6 +97,14 @@ public class FactionCommand {
         String name = player.getName();
         sender.sendMessage("- " + (name == null ? uuid : name));
       })
+      .count();
+  }
+
+  private static int list(CommandSender sender) throws CommandSyntaxException {
+    sender.sendMessage("Factions:");
+    return (int) Configs.prefixConfig().prefixes.values().stream()
+      .distinct()
+      .peek(name -> sender.sendMessage("- " + name))
       .count();
   }
 

@@ -1,4 +1,4 @@
-package com.github.moomination.moomincore.command.interop;
+package com.github.moomination.moomincore.internal.commander.interop;
 
 import com.mojang.brigadier.context.CommandContext;
 import org.bukkit.util.Vector;
@@ -10,7 +10,7 @@ import java.lang.invoke.MutableCallSite;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-public final class Vec3NativeToBukkit {
+public final class Vec3ArgumentType {
 
   private static final Class<?> ARGUMENT_VEC3;
   private static final Class<?> VEC3;

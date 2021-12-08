@@ -1,19 +1,15 @@
-package com.github.moomination.moomincore.command;
+package com.github.moomination.moomincore.internal.commander;
 
 import com.github.moomination.moomincore.MoominCore;
-import com.github.moomination.moomincore.command.interop.Reflections;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.tree.CommandNode;
 import org.bukkit.Bukkit;
-import org.bukkit.Server;
 import org.bukkit.command.CommandException;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
-import java.lang.invoke.MutableCallSite;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
@@ -23,16 +19,11 @@ final class BukkitToNative {
   private static final Class<?> CLASS_COMMAND_LISTENER_WRAPPER;
   private static final Class<?> CLASS_COMMAND_DISPATCHER;
 
-  private static final MutableCallSite GET_LISTENER_CALLSITE = new MutableCallSite(MethodType.methodType(Object.class /* CommandListenerWrapper */, CommandSender.class));
-  private static final MethodHandle GET_LISTENER = GET_LISTENER_CALLSITE.dynamicInvoker();
-  private static final MutableCallSite GET_CONSOLE_FIELD_CALLSITE = new MutableCallSite(MethodType.methodType(Object.class /* DedicatedServer */, Server.class));
-  private static final MethodHandle GET_CONSOLE_FIELD = GET_CONSOLE_FIELD_CALLSITE.dynamicInvoker();
-  private static final MutableCallSite GET_COMMAND_DISPATCHER_CALLSITE = new MutableCallSite(MethodType.methodType(Object.class /* CommandDispatcher */, Object.class /* DedicatedServer */));
-  private static final MethodHandle GET_COMMAND_DISPATCHER = GET_COMMAND_DISPATCHER_CALLSITE.dynamicInvoker();
-  private static final MutableCallSite PERFORM_COMMAND_CALLSITE = new MutableCallSite(MethodType.methodType(int.class, Object.class /* CommandDispatcher */, Object.class /* CommandListenerWrapper */, String.class, String.class, boolean.class));
-  private static final MethodHandle PERFORM_COMMAND = PERFORM_COMMAND_CALLSITE.dynamicInvoker();
-  private static final MutableCallSite SET_CUSTOM_SUGGESTIONS_PROVIDER_CALLSITE = new MutableCallSite(MethodType.methodType(void.class, CommandNode.class, SuggestionProvider.class));
-  private static final MethodHandle SET_CUSTOM_SUGGESTIONS_PROVIDER = SET_CUSTOM_SUGGESTIONS_PROVIDER_CALLSITE.dynamicInvoker();
+  private static final MethodHandle GET_LISTENER;
+  private static final MethodHandle GET_CONSOLE_FIELD;
+  private static final MethodHandle GET_COMMAND_DISPATCHER;
+  private static final MethodHandle PERFORM_COMMAND;
+  private static final MethodHandle SET_CUSTOM_SUGGESTIONS_PROVIDER;
 
   static {
     try {
@@ -42,28 +33,28 @@ final class BukkitToNative {
 
       Method getListener = CLASS_VANILLA_COMMAND_WRAPPER.getDeclaredMethod("getListener", CommandSender.class);
       getListener.setAccessible(true);
-      Reflections.bind(GET_LISTENER_CALLSITE, MethodHandles.lookup().unreflect(getListener));
+      GET_LISTENER = MethodHandles.lookup().unreflect(getListener);
 
       Class<?> commodoreImpl = MoominCore.commodore().getClass();
       Field consoleFieldField = commodoreImpl.getDeclaredField("CONSOLE_FIELD");
       consoleFieldField.setAccessible(true);
       Field console = (Field) consoleFieldField.get(null);
       console.setAccessible(true);
-      Reflections.bind(GET_CONSOLE_FIELD_CALLSITE, MethodHandles.lookup().unreflectGetter(console));
+      GET_CONSOLE_FIELD = MethodHandles.lookup().unreflectGetter(console);
 
       Field getCommandDispatcherMethodField = commodoreImpl.getDeclaredField("GET_COMMAND_DISPATCHER_METHOD");
       getCommandDispatcherMethodField.setAccessible(true);
       Method getCommandDispatcher = (Method) getCommandDispatcherMethodField.get(null);
       getCommandDispatcher.setAccessible(true);
-      Reflections.bind(GET_COMMAND_DISPATCHER_CALLSITE, MethodHandles.lookup().unreflect(getCommandDispatcher));
+      GET_COMMAND_DISPATCHER = MethodHandles.lookup().unreflect(getCommandDispatcher);
 
       Method performCommand = CLASS_COMMAND_DISPATCHER.getDeclaredMethod("performCommand", CLASS_COMMAND_LISTENER_WRAPPER, String.class, String.class, boolean.class);
       performCommand.setAccessible(true);
-      Reflections.bind(PERFORM_COMMAND_CALLSITE, MethodHandles.lookup().unreflect(performCommand));
+      PERFORM_COMMAND = MethodHandles.lookup().unreflect(performCommand);
 
       Method setCustomSuggestionProvider = commodoreImpl.getDeclaredMethod("setCustomSuggestionProvider", CommandNode.class, SuggestionProvider.class);
       setCustomSuggestionProvider.setAccessible(true);
-      Reflections.bind(SET_CUSTOM_SUGGESTIONS_PROVIDER_CALLSITE, MethodHandles.lookup().unreflect(setCustomSuggestionProvider));
+      SET_CUSTOM_SUGGESTIONS_PROVIDER = MethodHandles.lookup().unreflect(setCustomSuggestionProvider);
     } catch (ReflectiveOperationException exception) {
       throw new ExceptionInInitializerError(exception);
     }

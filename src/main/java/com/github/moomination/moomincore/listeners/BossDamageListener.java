@@ -1,89 +1,99 @@
 package com.github.moomination.moomincore.listeners;
 
 import com.github.moomination.moomincore.MoominCore;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.projectiles.ProjectileSource;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Comparator;
+import java.util.Set;
 
 public class BossDamageListener implements Listener {
 
+  private static final Set<EntityType> BOSS = Set.of(
+    EntityType.WITHER,
+    EntityType.ENDER_DRAGON,
+    EntityType.ELDER_GUARDIAN
+  );
   private static final String KEY_DAMAGES = "damages";
 
-  @EventHandler
+  @EventHandler(priority = EventPriority.MONITOR)
+  @SuppressWarnings("unchecked")
   public static void onBossDamagedByEntity(EntityDamageByEntityEvent event) {
-    if (event.getEntityType() != EntityType.WITHER && event.getEntityType() != EntityType.ENDER_DRAGON) {
+    if (BOSS.contains(event.getEntityType())) {
       return;
     }
-    Entity victim = event.getEntity();
-    Player player;
+    Entity boss = event.getEntity();
+    Player damager;
+
     if (event.getDamager() instanceof Player) {
       // プレイヤーの直接攻撃
-      player = (Player) event.getDamager();
-    } else if (event.getDamager() instanceof Projectile) {
-      ProjectileSource shooter = ((Projectile) event.getDamager()).getShooter();
-      if (shooter instanceof Player) {
-        // プレイヤーの飛び道具
-        player = (Player) shooter;
-      } else {
-        // プレイヤー以外の飛び道具
+      damager = (Player) event.getDamager();
+    } else if (event.getDamager() instanceof Projectile projectile) {
+      ProjectileSource shootBy = projectile.getShooter();
+      if (!(shootBy instanceof Player player)) {
         return;
       }
+      damager = player;
     } else {
-      // プレイヤーが絡まない要因
       return;
     }
-    HashMap<Player, Integer> damages;
-    if (victim.hasMetadata(KEY_DAMAGES)) {
-      try {
-        damages = (HashMap<Player, Integer>) victim.getMetadata(KEY_DAMAGES).get(0).value();
-      } catch (Exception ex) {
-        ex.printStackTrace();
+
+    Object2IntMap<Player> damages;
+    int damage = (int) Math.round(event.getFinalDamage());
+
+    if (!boss.hasMetadata(KEY_DAMAGES)) {
+      damages = new Object2IntOpenHashMap<>();
+      boss.setMetadata(KEY_DAMAGES, new FixedMetadataValue(MoominCore.getInstance(), damages));
+    } else {
+      damages = (Object2IntMap<Player>) boss.getMetadata(KEY_DAMAGES).get(0).value();
+      if (damages == null) {
         return;
       }
-      if (damages.containsKey(player)) {
-        damages.put(player, damages.get(player) + (int) Math.round(event.getFinalDamage()));
-      } else {
-        damages.put(player, (int) Math.round(event.getFinalDamage()));
+      if (damages.containsKey(damager)) {
+        damage += damages.getInt(damager);
       }
-    } else {
-      damages = new HashMap<>();
-      damages.put(player, (int) Math.round(event.getFinalDamage()));
-      victim.setMetadata(KEY_DAMAGES, new FixedMetadataValue(MoominCore.getInstance(), damages));
     }
+    damages.put(damager, damage);
   }
 
   @EventHandler
+  @SuppressWarnings("unchecked")
   public static void onBossSlain(EntityDeathEvent event) {
-    if (event.getEntityType() != EntityType.WITHER && event.getEntityType() != EntityType.ENDER_DRAGON) return;
-    if (!event.getEntity().hasMetadata(KEY_DAMAGES)) return;
-    Entity victim = event.getEntity();
-    HashMap<Player, Integer> damages;
-    try {
-      damages = (HashMap<Player, Integer>) victim.getMetadata(KEY_DAMAGES).get(0).value();
-    } catch (Exception ex) {
-      ex.printStackTrace();
+    if (BOSS.contains(event.getEntityType())) {
       return;
     }
-    ArrayList<String> lines = new ArrayList<>();
+    Entity boss = event.getEntity();
+    if (!boss.hasMetadata(KEY_DAMAGES)) {
+      return;
+    }
+
+    Object2IntMap<Player> damages = (Object2IntMap<Player>) boss.getMetadata(KEY_DAMAGES).get(0).value();
+    if (damages == null) {
+      return;
+    }
+
     int[] place = { 0 };
-    lines.add("== らんきんぐ ==");
-    damages.entrySet().stream().sorted(Map.Entry.<Player, Integer>comparingByValue().reversed()).forEach(set -> {
-      place[0]++;
-      lines.add(place[0] + ". " + set.getKey().getName() + " (" + set.getValue() + ")");
-    });
-    lines.forEach(Bukkit::broadcastMessage);
+    Bukkit.broadcast(Component.text("--- ランキング ---", NamedTextColor.GOLD));
+    damages.object2IntEntrySet().stream()
+      .sorted(Comparator.comparingInt(Object2IntMap.Entry::getIntValue))
+      .map(set -> Component.text((++place[0]) + "位 " + set.getKey().getName() + " (" + set.getIntValue() + " ダメージ)", NamedTextColor.GOLD))
+      .forEachOrdered(Bukkit::broadcast);
+    boss.getMetadata(KEY_DAMAGES).set(0, null);
+    boss.removeMetadata(KEY_DAMAGES, MoominCore.getInstance());
   }
 
 }

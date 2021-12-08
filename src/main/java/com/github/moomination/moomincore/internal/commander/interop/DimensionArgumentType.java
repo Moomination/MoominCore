@@ -1,4 +1,4 @@
-package com.github.moomination.moomincore.command.interop;
+package com.github.moomination.moomincore.internal.commander.interop;
 
 import com.mojang.brigadier.context.CommandContext;
 import org.bukkit.World;
@@ -9,7 +9,7 @@ import java.lang.invoke.MethodType;
 import java.lang.invoke.MutableCallSite;
 import java.lang.reflect.Method;
 
-public class DimensionNativeToBukkit {
+public final class DimensionArgumentType {
 
   private static final Class<?> ARGUMENT_DIMENSION;
   private static final Class<?> LEVEL;

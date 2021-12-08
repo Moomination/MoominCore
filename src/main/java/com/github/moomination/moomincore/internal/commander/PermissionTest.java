@@ -1,4 +1,4 @@
-package com.github.moomination.moomincore.command;
+package com.github.moomination.moomincore.internal.commander;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;

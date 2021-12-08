@@ -1,9 +1,9 @@
-package com.github.moomination.moomincore.commands;
+package com.github.moomination.moomincore.command;
 
-import com.github.moomination.moomincore.command.ArgumentTypes;
-import com.github.moomination.moomincore.command.Commands;
-import com.github.moomination.moomincore.command.PermissionTest;
-import com.github.moomination.moomincore.command.PluginCommands;
+import com.github.moomination.moomincore.internal.commander.ArgumentTypes;
+import com.github.moomination.moomincore.internal.commander.Commands;
+import com.github.moomination.moomincore.internal.commander.PermissionTest;
+import com.github.moomination.moomincore.internal.commander.PluginCommands;
 import com.github.moomination.moomincore.config.Configs;
 import com.github.moomination.moomincore.config.waypoint.Waypoint;
 import com.mojang.brigadier.arguments.StringArgumentType;

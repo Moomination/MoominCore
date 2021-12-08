@@ -1,6 +1,6 @@
 package com.github.moomination.moomincore;
 
-import com.github.moomination.moomincore.commands.*;
+import com.github.moomination.moomincore.command.*;
 import com.github.moomination.moomincore.config.Configs;
 import com.github.moomination.moomincore.listeners.BossDamageListener;
 import com.github.moomination.moomincore.listeners.ChatListener;

@@ -1,4 +1,4 @@
-package com.github.moomination.moomincore.command;
+package com.github.moomination.moomincore.internal.commander;
 
 import org.bukkit.Bukkit;
 

@@ -1,8 +1,8 @@
-package com.github.moomination.moomincore.command;
+package com.github.moomination.moomincore.internal.commander;
 
-import com.github.moomination.moomincore.command.interop.DimensionNativeToBukkit;
-import com.github.moomination.moomincore.command.interop.EntityNativeToBukkit;
-import com.github.moomination.moomincore.command.interop.Vec3NativeToBukkit;
+import com.github.moomination.moomincore.internal.commander.interop.DimensionArgumentType;
+import com.github.moomination.moomincore.internal.commander.interop.EntityArgumentType;
+import com.github.moomination.moomincore.internal.commander.interop.Vec3ArgumentType;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import me.lucko.commodore.MinecraftArgumentTypes;
@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.lang.reflect.Constructor;
+import java.util.Collection;
 
 public final class ArgumentTypes {
 
@@ -71,15 +72,19 @@ public final class ArgumentTypes {
   }
 
   public static Player player(CommandContext<?> ctx, String argumentName) {
-    return EntityNativeToBukkit.player(ctx, argumentName);
+    return EntityArgumentType.player(ctx, argumentName);
+  }
+
+  public static Collection<Player> players(CommandContext<?> ctx, String argumentName) {
+    return EntityArgumentType.players(ctx, argumentName);
   }
 
   public static Vector vec3(CommandContext<?> ctx, String argumentName) {
-    return Vec3NativeToBukkit.vec3(ctx, argumentName);
+    return Vec3ArgumentType.vec3(ctx, argumentName);
   }
 
   public static World dimension(CommandContext<?> ctx, String argumentName) {
-    return DimensionNativeToBukkit.dimension(ctx, argumentName);
+    return DimensionArgumentType.dimension(ctx, argumentName);
   }
 
 }

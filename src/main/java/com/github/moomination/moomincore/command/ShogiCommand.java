@@ -1,12 +1,15 @@
-package com.github.moomination.moomincore.commands;
+package com.github.moomination.moomincore.command;
 
-import com.github.moomination.moomincore.command.ArgumentTypes;
-import com.github.moomination.moomincore.command.Commands;
-import com.github.moomination.moomincore.command.PluginCommands;
+import com.github.moomination.moomincore.internal.commander.ArgumentTypes;
+import com.github.moomination.moomincore.internal.commander.Commands;
+import com.github.moomination.moomincore.internal.commander.PluginCommands;
 import me.lucko.commodore.Commodore;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
+
+import java.util.Collection;
+import java.util.List;
 
 public class ShogiCommand {
 
@@ -18,17 +21,17 @@ public class ShogiCommand {
         .description("Shogi!")
         .build(plugin),
       Commands.literal("shogi").executes(
-        ctx -> shogi(commodore.getBukkitSender(ctx.getSource()))
+        ctx -> shogi(List.of(commodore.getBukkitSender(ctx.getSource())))
       ).then(
-        Commands.argument("player", ArgumentTypes.player()).executes(
-          ctx -> shogi(ArgumentTypes.player(ctx, "player"))
+        Commands.argument("players", ArgumentTypes.players()).executes(
+          ctx -> shogi(ArgumentTypes.players(ctx, "players"))
         )
       )
     );
   }
 
-  public static int shogi(CommandSender sender) {
-    displayShogiban(sender);
+  public static int shogi(Collection<? extends CommandSender> targets) {
+    targets.forEach(ShogiCommand::displayShogiban);
     return 0;
   }
 

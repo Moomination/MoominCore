@@ -1,14 +1,57 @@
 package com.github.moomination.moomincore.listeners;
 
+import com.github.moomination.moomincore.Phrase;
 import com.github.moomination.moomincore.config.Configs;
 import io.papermc.paper.chat.ChatRenderer;
 import io.papermc.paper.event.player.AsyncChatEvent;
+import it.unimi.dsi.fastutil.chars.Char2ObjectMap;
+import it.unimi.dsi.fastutil.chars.Char2ObjectOpenHashMap;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+
+import java.util.function.Consumer;
 
 public class ChatListener implements Listener {
+
+  private static final Char2ObjectMap<Consumer<TextComponent.Builder>> COLORS
+    = new Char2ObjectOpenHashMap<>(22);
+
+  static {
+    COLORS.put('0', b -> b.style(Style.style(NamedTextColor.BLACK)));
+    COLORS.put('1', b -> b.style(Style.style(NamedTextColor.DARK_BLUE)));
+    COLORS.put('2', b -> b.style(Style.style(NamedTextColor.DARK_GREEN)));
+    COLORS.put('3', b -> b.style(Style.style(NamedTextColor.DARK_AQUA)));
+    COLORS.put('4', b -> b.style(Style.style(NamedTextColor.DARK_RED)));
+    COLORS.put('5', b -> b.style(Style.style(NamedTextColor.DARK_PURPLE)));
+    COLORS.put('6', b -> b.style(Style.style(NamedTextColor.GOLD)));
+    COLORS.put('7', b -> b.style(Style.style(NamedTextColor.GRAY)));
+    COLORS.put('8', b -> b.style(Style.style(NamedTextColor.DARK_GRAY)));
+    COLORS.put('9', b -> b.style(Style.style(NamedTextColor.BLUE)));
+    COLORS.put('a', b -> b.style(Style.style(NamedTextColor.GREEN)));
+    COLORS.put('b', b -> b.style(Style.style(NamedTextColor.AQUA)));
+    COLORS.put('c', b -> b.style(Style.style(NamedTextColor.RED)));
+    COLORS.put('d', b -> b.style(Style.style(NamedTextColor.LIGHT_PURPLE)));
+    COLORS.put('e', b -> b.style(Style.style(NamedTextColor.YELLOW)));
+    COLORS.put('f', b -> b.style(Style.style(NamedTextColor.WHITE)));
+    COLORS.put('k', b -> b.style(Style.style(TextDecoration.OBFUSCATED)));
+    COLORS.put('l', b -> b.style(Style.style(TextDecoration.BOLD)));
+    COLORS.put('m', b -> b.style(Style.style(TextDecoration.STRIKETHROUGH)));
+    COLORS.put('n', b -> b.style(Style.style(TextDecoration.UNDERLINED)));
+    COLORS.put('o', b -> b.style(Style.style(TextDecoration.ITALIC)));
+    COLORS.put('r', b -> b.resetStyle());
+  }
+
+  @EventHandler
+  public static void onJoinEvent(PlayerJoinEvent event) {
+  }
 
   @EventHandler
   public static void onChat(AsyncChatEvent event) {
@@ -22,7 +65,16 @@ public class ChatListener implements Listener {
         .append(Component.text("]", NamedTextColor.GOLD))
         .append(sourceDisplayName.color(NamedTextColor.WHITE))
         .append(Component.text(": ", NamedTextColor.WHITE))
-        .append(message.color(NamedTextColor.WHITE))
+        .append(
+          LegacyComponentSerializer.legacyAmpersand().deserialize(
+              LegacyComponentSerializer.legacySection().serialize(message)
+            )
+            .replaceText(builder ->
+              Bukkit.getOnlinePlayers().forEach(player ->
+                builder.match(player.getName()).replacement(b -> Phrase.player(player, b))
+              )
+            )
+        )
         .build()
     ));
   }

@@ -1,6 +1,7 @@
 package com.github.moomination.moomincore.listeners;
 
-import com.github.moomination.moomincore.commands.SpawnCommand;
+import com.github.moomination.moomincore.Cooldown;
+import com.github.moomination.moomincore.command.SpawnCommand;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -10,6 +11,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -17,9 +19,9 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.concurrent.ThreadLocalRandom;
-
 public class PlayerListener implements Listener {
+
+  private static final Cooldown<Player> BELL_COOLDOWN = new Cooldown<>();
 
   @EventHandler
   public static void onDeath(PlayerDeathEvent event) {
@@ -58,7 +60,7 @@ public class PlayerListener implements Listener {
     ));
   }
 
-  @EventHandler(ignoreCancelled = true)
+  @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
   public static void onRightClick(PlayerInteractEvent event) {
     if (!event.getAction().isRightClick())
       return;
@@ -70,10 +72,11 @@ public class PlayerListener implements Listener {
     }
 
     if (clickedBlock.getType() == Material.BELL) {
-      int base = 0xFEFEFE;
-      player.sendMessage(Component.text("ベルたたくな",
-        TextColor.color(ThreadLocalRandom.current().nextInt(0xFFFFFF - base) + base)));
-      event.setCancelled(true);
+      if (BELL_COOLDOWN.get(player) > 0) {
+        event.setCancelled(true);
+      } else {
+        BELL_COOLDOWN.wait(player, 1, 15, 0, () -> BELL_COOLDOWN.remove(player));
+      }
       return;
     }
 
@@ -92,13 +95,12 @@ public class PlayerListener implements Listener {
         clickedBlock.getType() != Material.SWEET_BERRIES &&
         clickedBlock.getBlockData() instanceof Ageable ageable) {
       if (isAgeableMature(ageable)) {
-        World world = clickedBlock.getWorld();
-        Location location = clickedBlock.getLocation();
-        for (var drop : clickedBlock.getDrops(player.getActiveItem()))
-          world.dropItem(location, drop);
+        if (item != null) {
+          clickedBlock.breakNaturally(item, true);
+        } else {
+          clickedBlock.breakNaturally(true);
+        }
         ageable.setAge(0);
-        world.playSound(location, Sound.BLOCK_SWEET_BERRY_BUSH_PICK_BERRIES, SoundCategory.BLOCKS, 1, 1);
-        world.spawnParticle(Particle.COMPOSTER, location, 20);
         clickedBlock.setBlockData(ageable);
         player.swingMainHand();
       }
@@ -114,7 +116,7 @@ public class PlayerListener implements Listener {
   @EventHandler
   public static void onPlayerMoved(PlayerMoveEvent event) {
     Player player = event.getPlayer();
-    if (event.hasChangedBlock() && SpawnCommand.WAITSET.remove(player)) {
+    if (event.hasChangedBlock() && SpawnCommand.SPAWN_WAITTIME.remove(player) > 0) {
       player.sendMessage(ChatColor.RED + "Your teleportation has been cancelled");
     }
   }
@@ -122,7 +124,7 @@ public class PlayerListener implements Listener {
   @EventHandler
   public static void onPlayerDamaged(EntityDamageEvent event) {
     if (event.getEntity() instanceof Player player) {
-      if (SpawnCommand.WAITSET.remove(player)) {
+      if (SpawnCommand.SPAWN_WAITTIME.remove(player) > 0) {
         player.sendMessage(ChatColor.RED + "Your teleportation has been cancelled");
       }
     }
